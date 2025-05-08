@@ -16,17 +16,6 @@ CREATE TABLE IF NOT EXISTS users (
 """)
 conn.commit()
 
-in_name = st.text_input("Enter Your Name: ")
-in_age = st.selectbox("Enter Your Class: ",("1 - 20","21 - 40","41 - 60","61 - 100"))
-
-button = st.button("Done")
-if button :
-    st.markdown(f""" 
-    Name : {in_name}
-    \nAge : {in_age}
-
-    """)
-
 with st.form("entry_form"):
     name = st.text_input("Name")
     age = st.number_input("Age", min_value=0)
