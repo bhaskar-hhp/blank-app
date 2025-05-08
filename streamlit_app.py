@@ -38,6 +38,7 @@ if st.session_state.page == "Add User":
             cursor.execute("INSERT INTO users (name, age) VALUES (?, ?)", (name, age))
             conn.commit()
             st.success(f"User '{name}' added!")
+            st.rerun()
 
 # --- Page: View Users ---
 elif st.session_state.page == "View Users":
@@ -62,5 +63,5 @@ elif st.session_state.page == "Delete User":
         if st.button("Delete"):
             cursor.execute("DELETE FROM users WHERE id = ?", (selected_id,))
             conn.commit()
-            st.success(f"User with ID {selected_id} deleted.")
-            st.experimental_rerun()  # Refresh while keeping sidebar working
+            st.success(f"User with ID {selected_id} deleted. Refresh the  Page")        
+            st.rerun() # Refresh while keeping sidebar working
