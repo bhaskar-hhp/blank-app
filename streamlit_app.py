@@ -22,7 +22,7 @@ if "page" not in st.session_state:
 
 # Sidebar nav
 st.sidebar.title("Navigation")
-st.session_state.page = st.sidebar.radio("Choose page", ["Add User", "View Users", "Delete User"])
+st.session_state.page = st.sidebar.radio("Choose page", ["View Users", "Add User", "Delete User"])
 
 # --- Page: Add User ---
 if st.session_state.page == "Add User":
