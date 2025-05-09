@@ -1,0 +1,4 @@
+name,type,pass
+ALICE,Admin,pass123
+BOB,Standard,hello123
+CHARLIE,Guest,welcome

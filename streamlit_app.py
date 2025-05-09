@@ -86,6 +86,41 @@ if st.session_state.logged_in:
                     st.success(f"User '{name}' added!")
                     st.rerun()  # Refresh the page after adding user
 
+        st.markdown("---")
+
+        # --- Bulk Upload Section ---
+        # --- Download Format Template ---
+        with open("add-bulk.csv", "rb") as f:
+            st.download_button(
+                label="📥 Download CSV Format",
+                data=f,
+                file_name="add-bulk.csv",
+                mime="text/csv"
+    )
+
+        st.subheader("📂 Upload CSV to Add Users in Bulk")
+        csv_file = st.file_uploader("Upload a CSV file with columns: name, type, pass", type="csv")
+
+        if csv_file:
+            try:
+                df = pd.read_csv(csv_file)
+                required_cols = {"name", "type", "pass"}
+                if not required_cols.issubset(df.columns.str.lower()):
+                    st.error(f"CSV must include the following columns: {', '.join(required_cols)}")
+                else:
+                    df.columns = df.columns.str.lower()  # Normalize columns
+                    df["name"] = df["name"].str.strip().str.lower()  # Clean usernames
+                    for _, row in df.iterrows():
+                        cursor.execute("INSERT INTO users (name, type, pass) VALUES (?, ?, ?)", 
+                                    (row["name"].strip().upper(), row["type"], row["pass"]))
+                    conn.commit()
+                    st.success(f"{len(df)} users added successfully!")
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Error processing file: {e}")
+
+        st.markdown("---")
+
     # --- Page: View Users ---
     elif st.session_state.page == "View Users":
         st.title("All Users")
