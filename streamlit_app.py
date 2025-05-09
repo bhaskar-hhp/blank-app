@@ -34,7 +34,7 @@ if not st.session_state.logged_in:
     
     # Login form
     with st.form("login_form"):
-        name = st.text_input("Enter User Name: ")
+        name = st.text_input("Enter User Name: ").strip().upper()
         password = st.text_input("Enter Password", type="password")
         submit = st.form_submit_button("Login")
         
@@ -67,7 +67,7 @@ if st.session_state.logged_in:
     if st.session_state.page == "Add User" and st.session_state.user_type == "Admin":
         st.title("Add New User")
         with st.form("add_form"):
-            name = st.text_input("Enter User Name: ")
+            name = st.text_input("Enter User Name: ").strip().upper()
             user_type = st.selectbox("User Type", ["Admin", "Standard", "Guest"])
             password = st.text_input("Create Password", type="password")
 
