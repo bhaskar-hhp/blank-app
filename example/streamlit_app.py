@@ -11,7 +11,7 @@ st.set_page_config(
 st.title("👋 Welcome to the User Manager App")
 
 # --- Connect to DB ---
-conn = sqlite3.connect("/workspaces/blank-app/data.db", check_same_thread=False)
+conn = sqlite3.connect("/workspaces/blank-app/data.dbdata.db", check_same_thread=False)
 cursor = conn.cursor()
 
 # --- Create users table if not exists ---
