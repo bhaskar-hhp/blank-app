@@ -1,6 +1,10 @@
 import streamlit as st
 import sqlite3
 
+if "logged_in" not in st.session_state or not st.session_state.logged_in:
+    st.warning("Please log in to access this page.")
+    st.stop()
+
 # --- Connect to DB ---
 conn = sqlite3.connect("/workspaces/blank-app/data.db", check_same_thread=False)
 cursor = conn.cursor()
@@ -25,13 +29,14 @@ st.markdown("---")
 
 with open("add-bulk.csv", "rb") as f:
     st.download_button(
-        label="\ud83d\udcc5 Download CSV Format",
+        label="📅 Download CSV Format",
+
         data=f,
         file_name="add-bulk.csv",
         mime="text/csv"
     )
 
-st.subheader("\ud83d\udcc2 Upload CSV to Add Users in Bulk")
+st.subheader("📂 Upload CSV to Add Users in Bulk")
 csv_file = st.file_uploader("Upload a CSV file with columns: name, type, pass", type="csv")
 
 if csv_file and "processed_bulk_upload" not in st.session_state:

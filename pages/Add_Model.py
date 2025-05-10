@@ -2,6 +2,10 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 
+if "logged_in" not in st.session_state or not st.session_state.logged_in:
+    st.warning("Please log in to access this page.")
+    st.stop()
+
 st.set_page_config(page_title="Add Model", page_icon="➕")
 st.title("📋 Existing Models")
 
