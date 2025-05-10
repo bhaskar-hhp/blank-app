@@ -11,7 +11,7 @@ st.set_page_config(
 st.title("👋 Welcome to the User Manager App")
 
 # --- Connect to DB ---
-conn = sqlite3.connect("/workspaces/blank-app/data.dbdata.db", check_same_thread=False)
+conn = sqlite3.connect("/workspaces/blank-app/data.db", check_same_thread=False)
 cursor = conn.cursor()
 
 # --- Create users table if not exists ---
@@ -91,8 +91,8 @@ if st.session_state.logged_in:
                     st.rerun()
 
         st.markdown("---")
-
-        with open("add-bulk.csv", "rb") as f:
+        # Add Bulk users
+        with open("/workspaces/blank-app/add-bulk.csv", "rb") as f:
             st.download_button(
                 label="📥 Download CSV Format",
                 data=f,
