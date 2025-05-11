@@ -1,63 +1,46 @@
 import streamlit as st
-import smtplib
-from email.mime.text import MIMEText
-from twilio.rest import Client
+import requests
+ #it will work on root level only
+# Ensure you have the required libraries installed
+# pip install streamlit requests
+# Streamlit app to send email notifications using Mailjet
+# Set up Streamlit secrets
+def send_mailjet_email(subject, message):
+    api_key = st.secrets["mailjet"]["api_key"]
+    api_secret = st.secrets["mailjet"]["api_secret"]
+    from_email = st.secrets["mailjet"]["from_email"]
+    to_email = st.secrets["mailjet"]["to_email"]
 
-# --- Email Notification Function ---
-def send_email(subject, message, to_email):
-    from_email = st.secrets["email"]["from_email"]
-    password = st.secrets["email"]["app_password"]
+    url = "https://api.mailjet.com/v3.1/send"
+    data = {
+        "Messages": [
+            {
+                "From": {"Email": from_email, "Name": "Notifier"},
+                "To": [{"Email": to_email, "Name": "User"}],
+                "Subject": subject,
+                "TextPart": message
+            }
+        ]
+    }
 
-    msg = MIMEText(message)
-    msg["Subject"] = subject
-    msg["From"] = from_email
-    msg["To"] = to_email
+    response = requests.post(url, auth=(api_key, api_secret), json=data)
+    if response.status_code == 200:
+        return "✅ Mailjet email sent successfully!"
+    else:
+        return f"❌ Mailjet email error: {response.text}"
 
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(from_email, password)
-            server.send_message(msg)
-        return "✅ Email sent!"
-    except Exception as e:
-        return f"❌ Email error: {e}"
+# Streamlit UI
+st.title("📧 Mailjet Email Notification Demo")
 
-# --- WhatsApp Notification Function ---
-def send_whatsapp(to_number, message):
-    account_sid = st.secrets["twilio"]["account_sid"]
-    auth_token = st.secrets["twilio"]["auth_token"]
-    from_number = 'whatsapp:+14155238886'  # Twilio sandbox number
-
-    client = Client(account_sid, auth_token)
-    try:
-        msg = client.messages.create(
-            body=message,
-            from_=from_number,
-            to='whatsapp:' + to_number
-        )
-        return f"✅ WhatsApp sent: SID {msg.sid}"
-    except Exception as e:
-        return f"❌ WhatsApp error: {e}"
-
-# --- Streamlit UI ---
-st.title("🔔 Notification Sender")
-
-st.header("📧 Send Email")
-email = st.text_input("Recipient Email")
 subject = st.text_input("Subject")
-email_msg = st.text_area("Email Message")
-if st.button("Send Email"):
-    if email and subject and email_msg:
-        result = send_email(subject, email_msg, email)
-        st.success(result)
-    else:
-        st.warning("Please fill all email fields.")
+message = st.text_area("Message")
 
-st.header("💬 Send WhatsApp")
-whatsapp_number = st.text_input("WhatsApp Number (with country code, e.g., +91...)")
-whatsapp_msg = st.text_area("WhatsApp Message")
-if st.button("Send WhatsApp"):
-    if whatsapp_number and whatsapp_msg:
-        result = send_whatsapp(whatsapp_number, whatsapp_msg)
-        st.success(result)
+if st.button("Send Email"):
+    if subject and message:
+        status = send_mailjet_email(subject, message)
+        if status.startswith("✅"):
+            st.success(status)
+        else:
+            st.error(status)
     else:
-        st.warning("Please fill all WhatsApp fields.")
+        st.warning("Please enter both subject and message.")

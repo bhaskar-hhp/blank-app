@@ -30,20 +30,6 @@ CREATE TABLE IF NOT EXISTS models (
     specs TEXT
 )
 """)
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS dist (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    address TEXT,
-    location TEXT,
-    contact TEXT,
-    email TEXT,
-    added_by TEXT
-)
-""")
-
-
 conn.commit()
 
 # --- Initialize session state ---
@@ -81,10 +67,7 @@ if st.session_state.logged_in:
     st.sidebar.success(f"Logged in as: {st.session_state.username} ({st.session_state.usertype})")
 
     if st.session_state.usertype == "Admin":
-        st.session_state.page = st.sidebar.radio(
-            "Choose page",
-            ["View Users", "➕ Add User", "🗑️ Delete User", "Add Model", "Add/Delete Distributor"]
-        )
+        st.session_state.page = st.sidebar.radio("Choose page", ["View Users", "Add User", "Delete User", "Add Model"])
     else:
         st.session_state.page = "Home"
 
@@ -243,62 +226,6 @@ if st.session_state.logged_in:
             else:
                 st.info("Please check the box to confirm before resetting the models.", icon="⚠️")
 
-    elif st.session_state.page == "Add/Delete Distributor":
-        st.title("🏪 Distributor Manager")
-
-        # Distribuutor page - Display Existing Distributors
-        df_dist = pd.read_sql_query("SELECT * FROM dist", conn)
-        if df_dist.empty:
-            st.info("No distributors available.")
-        else:
-            st.dataframe(df_dist, use_container_width=True)
-
-            dist_ids = df_dist["id"].tolist()
-            dist_id_to_delete = st.selectbox("Select Distributor ID to Delete", dist_ids)
-
-            if st.button("Delete Selected Distributor"):
-                cursor.execute("SELECT name FROM dist WHERE id = ?", (dist_id_to_delete,))
-                dist_name = cursor.fetchone()[0]
-                cursor.execute("DELETE FROM dist WHERE id = ?", (dist_id_to_delete,))
-                cursor.execute("DELETE FROM users WHERE name = ? AND type = 'Guest'", (dist_name,))
-                conn.commit()
-                st.success("Distributor and corresponding Guest user deleted.")
-                st.rerun()
-
-        st.markdown("---")
-        st.title("➕ Add Distributor")
-
-        with st.form("add_distributor_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                dist_name = st.text_input("Distributor Name").strip().upper()
-                location = st.text_input("Location").strip().title()
-                contact = st.text_input("Contact Number").strip()
-            with col2:
-                address = st.text_area("Address").strip().title()
-                email = st.text_input("Email").strip()
-
-            submit = st.form_submit_button("Add Distributor")
-
-            if submit:
-                if not dist_name or not address or not location or not contact or not email:
-                    st.warning("Please fill in all fields.")
-                else:
-                    try:
-                        cursor.execute("""
-                            INSERT INTO dist (name, address, location, contact, email, added_by)
-                            VALUES (?, ?, ?, ?, ?, ?)
-                        """, (dist_name, address, location, contact, email, st.session_state.username))
-                        
-                        cursor.execute("""
-                            INSERT INTO users (name, type, pass) VALUES (?, 'Guest', '1234')
-                        """, (dist_name,))
-                        
-                        conn.commit()
-                        st.success(f"Distributor '{dist_name}' added with Guest login.")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Error adding distributor: {e}")
     else:
         st.title("🏠 Home")
         st.write("Welcome to the Model Manager dashboard.")
