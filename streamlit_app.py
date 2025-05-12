@@ -79,7 +79,7 @@ if not st.session_state.logged_in:
 
 # --- After login ---
 if st.session_state.logged_in:
-    st.sidebar.image("/workspaces/blank-app/logo.png", use_container_width=True)
+    st.sidebar.image("logo.png", use_container_width=True)
     st.sidebar.title("Navigation")
     st.sidebar.success(f"Logged in as: {st.session_state.username} ({st.session_state.usertype})")
 
