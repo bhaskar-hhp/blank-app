@@ -1,7 +1,7 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
-
+import os
 # --- Clear cached data ---
 st.cache_data.clear()
 
@@ -9,6 +9,8 @@ st.cache_data.clear()
 st.set_page_config(page_title="Model Manager", page_icon="🛠️")
 
 # --- Connect to DB ---
+db_path = os.path.join(os.getcwd(), "data.db")
+
 conn = sqlite3.connect("data.db", check_same_thread=False)
 cursor = conn.cursor()
 
