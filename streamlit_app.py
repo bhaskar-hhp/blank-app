@@ -90,9 +90,15 @@ if st.session_state.logged_in:
                 "🗑️ Delete User", 
                 "➕ Add/Delete Model", 
                 "🏪 Add/Delete Distributor"
-            ]        )
+            ]
+        )
     else:
-        st.session_state.page = "Home"
+        st.session_state.page = st.sidebar.radio(
+            "Choose page",
+            [
+                "📦 Dashboard"
+            ]
+        )
 
     # --- Logout ---
     if st.sidebar.button("Logout"):
