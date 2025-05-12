@@ -9,7 +9,7 @@ st.cache_data.clear()
 st.set_page_config(page_title="Model Manager", page_icon="🛠️")
 
 # --- Connect to DB ---
-conn = sqlite3.connect("/workspaces/blank-app/data.db", check_same_thread=False)
+conn = sqlite3.connect("data.db", check_same_thread=False)
 cursor = conn.cursor()
 
 # --- Create tables if not exist ---
