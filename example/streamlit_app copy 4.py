@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS users (
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS models (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    brand TEXT,
     model TEXT,
     color TEXT,
     specs TEXT
@@ -84,13 +83,8 @@ if st.session_state.logged_in:
     if st.session_state.usertype == "Admin":
         st.session_state.page = st.sidebar.radio(
             "Choose page",
-            [
-                "📦 Dashboard", 
-                "👤 Add User", 
-                "🗑️ Delete User", 
-                "➕ Add/Delete Model", 
-                "🏪 Add/Delete Distributor"
-            ]        )
+            ["View Users", "➕ Add User", "🗑️ Delete User", "Add Model", "Add/Delete Distributor"]
+        )
     else:
         st.session_state.page = "Home"
 
@@ -101,30 +95,16 @@ if st.session_state.logged_in:
         st.rerun()
 
     # --- Pages ---
-
-    # View Users
-    if st.session_state.page == "📦 Dashboard":
+    if st.session_state.page == "View Users":
         st.title("All Users")
         df = pd.read_sql_query("SELECT * FROM users", conn)
         st.dataframe(df, use_container_width=True)
 
-        st.title("All Distributors")
-        df = pd.read_sql_query("SELECT * FROM dist", conn)
-        st.dataframe(df, use_container_width=True)
-
-        st.title("All Models")
-        df = pd.read_sql_query("SELECT * FROM models", conn)
-        st.dataframe(df, use_container_width=True)
- 
-    # add user
-    elif st.session_state.page == "👤 Add User":
-        st.title("All Users")
-        df = pd.read_sql_query("SELECT * FROM users", conn)
-        st.dataframe(df, use_container_width=True)
+    elif st.session_state.page == "Add User":
         st.title("Add New User")
         with st.form("add_form"):
             name = st.text_input("Enter User Name: ").strip().upper()
-            user_type = st.selectbox("User Type", ["Admin", "Standard", "Guest", "Back Office"])
+            user_type = st.selectbox("User Type", ["Admin", "Standard", "Guest"])
             password = st.text_input("Create Password", type="password")
             submit = st.form_submit_button("Add")
 
@@ -157,8 +137,8 @@ if st.session_state.logged_in:
                 st.session_state.processed_bulk_upload = True
             except Exception as e:
                 st.error(f"Error processing file: {e}")
-    ## delete user
-    elif st.session_state.page == "🗑️ Delete User":
+
+    elif st.session_state.page == "Delete User":
         st.title("Delete a User")
         df = pd.read_sql_query("SELECT * FROM users", conn)
 
@@ -186,9 +166,8 @@ if st.session_state.logged_in:
                 st.rerun()
             else:
                 st.info("Please check the box to confirm before resetting the Users.", icon="⚠️")
-    
-    #add model
-    elif st.session_state.page == "➕ Add/Delete Model":
+
+    elif st.session_state.page == "Add Model":
         st.title("📋 Existing Models")
         df_models = pd.read_sql_query("SELECT * FROM models", conn)
         if df_models.empty:
@@ -199,112 +178,75 @@ if st.session_state.logged_in:
         st.markdown("---")
         st.title("➕ Add New Model")
 
-        # Add model form
         with st.form("add_model_form"):
-            all_brands = df_models["brand"].unique().tolist()
-            custom_brand = st.text_input("Or type a new brand (If Brand not in list)")
-            selected_brand = st.selectbox("Select a brand", all_brands)
-
-            brand = custom_brand if custom_brand else selected_brand
             model = st.text_input("Model Name")
             color = st.text_input("Color")
             specs = st.text_area("Specifications")
             submit = st.form_submit_button("Add Model")
 
             if submit:
-                if not brand or not model or not color or not specs:
+                if not model or not color or not specs:
                     st.warning("Please fill in all fields.")
                 else:
-                    cursor.execute("INSERT INTO models (brand, model, color, specs) VALUES (?, ?, ?, ?)", (brand, model, color, specs))
+                    cursor.execute("INSERT INTO models (model, color, specs) VALUES (?, ?, ?)", (model, color, specs))
                     conn.commit()
                     st.success(f"Model '{model}' added successfully!")
                     st.rerun()
-        # Download CSV template
-        model_template = pd.DataFrame(columns=["brand", "model", "color", "specs"])
+
+        model_template = pd.DataFrame(columns=["model", "color", "specs"])
         st.download_button("📥 Download Model CSV Template", model_template.to_csv(index=False).encode(), "model-template.csv", "text/csv")
-        # Upload CSV
+
         st.subheader("📂 Upload CSV to Add Models in Bulk")
         csv_model_file = st.file_uploader("Upload CSV with columns: model, color, specs", type="csv")
-        # Process CSV
+
         if csv_model_file and "processed_bulk_upload_models" not in st.session_state:
             try:
                 df = pd.read_csv(csv_model_file)
                 df.columns = df.columns.str.lower()
                 for _, row in df.iterrows():
-                    cursor.execute("INSERT INTO models (brand, model, color, specs) VALUES (?, ?, ?, ?)",
-                                (row["brand"], row["model"], row["color"], row["specs"]))
+                    cursor.execute("INSERT INTO models (model, color, specs) VALUES (?, ?, ?)",
+                                (row["model"], row["color"], row["specs"]))
                 conn.commit()
                 st.success(f"{len(df)} models added successfully!")
                 st.session_state.processed_bulk_upload_models = True
             except Exception as e:
                 st.error(f"Error uploading models: {e}")
-        # Delete model
+
         st.markdown("---")
         st.subheader("🗑️ Delete a Model Entry")
 
-        # Smart select or input for Brand
-        brands = df_models["brand"].unique().tolist()
-
-        if "selected_brand" not in st.session_state:
-            st.session_state.selected_brand = ""
-        if "custom_brand" not in st.session_state:
-            st.session_state.custom_brand = ""
-
-        def on_select_brand():
-            st.session_state.custom_brand = ""
-
-        def on_custom_brand():
-            st.session_state.selected_brand = ""
-
-        st.selectbox("Select Existing Brand", options=[""] + brands, key="selected_brand", on_change=on_select_brand)
-        
-
-        # Use typed brand if provided, else selected
-        brand = st.session_state.custom_brand.strip() if st.session_state.custom_brand.strip() else st.session_state.selected_brand
-
-        if brand:
-            filtered_by_brand = df_models[df_models["brand"] == brand]
-            models = filtered_by_brand["model"].unique().tolist()
-
-            if models:
-                selected_model = st.selectbox("Select Model", models)
-                filtered_by_model = filtered_by_brand[filtered_by_brand["model"] == selected_model]
-
-                colors = filtered_by_model["color"].unique().tolist()
-                selected_color = st.selectbox("Select Color", colors)
-
-                filtered_by_color = filtered_by_model[filtered_by_model["color"] == selected_color]
-                specs = filtered_by_color["specs"].unique().tolist()
-                selected_specs = st.selectbox("Select Specifications", specs)
-
-                if st.button("Delete Selected Model Entry"):
-                    cursor.execute(
-                        "DELETE FROM models WHERE brand = ? AND model = ? AND color = ? AND specs = ?",
-                        (brand, selected_model, selected_color, selected_specs)
-                    )
-                    conn.commit()
-                    st.success(f"Deleted model: {brand} / {selected_model} / {selected_color}")
-                    st.rerun()
-            else:
-                st.info("No models found for selected brand.")
+        if df_models.empty:
+            st.info("No model data available to delete.")
         else:
-            st.warning("Please select or type a brand.")
+            selected_model = st.selectbox("Select Model", df_models["model"].unique())
+            filtered_by_model = df_models[df_models["model"] == selected_model]
 
-            # Reset Table Option
-            st.markdown("---")
-            confirm_reset = st.checkbox("Are you sure you want to delete all models?")
-            if st.button("Reset Models Table"):
-                if confirm_reset:
-                    cursor.execute("DELETE FROM models")
-                    conn.commit()
-                    st.success("All models have been deleted.")
-                    st.rerun()
-                else:
-                    st.info("Please check the box to confirm before resetting the models.", icon="⚠️")
+            selected_color = st.selectbox("Select Color", filtered_by_model["color"].unique())
+            filtered_by_color = filtered_by_model[filtered_by_model["color"] == selected_color]
+
+            selected_specs = st.selectbox("Select Specifications", filtered_by_color["specs"].unique())
+
+            if st.button("Delete Selected Model Entry"):
+                cursor.execute("DELETE FROM models WHERE model = ? AND color = ? AND specs = ?",
+                            (selected_model, selected_color, selected_specs))
+                conn.commit()
+                st.success(f"Deleted model: {selected_model} / {selected_color}")
+                st.rerun()
+
+        confirm_reset = st.checkbox("Are you sure you want to delete all models?")
+        if st.button("Reset Models Table"):
+            if confirm_reset:
+                cursor.execute("DELETE FROM models")
+                conn.commit()
+                st.success("All models have been deleted.")
+                st.rerun()
+            else:
+                st.info("Please check the box to confirm before resetting the models.", icon="⚠️")
+
+    elif st.session_state.page == "Add/Delete Distributor":
+        st.title("🏪 Distributor Manager")
 
         # Distribuutor page - Display Existing Distributors
-    elif st.session_state.page == "🏪 Add/Delete Distributor":
-        st.title("📋 Existing Distributors")    
         df_dist = pd.read_sql_query("SELECT * FROM dist", conn)
         if df_dist.empty:
             st.info("No distributors available.")
@@ -322,7 +264,7 @@ if st.session_state.logged_in:
                 conn.commit()
                 st.success("Distributor and corresponding Guest user deleted.")
                 st.rerun()
-        # Add Distributor form
+
         st.markdown("---")
         st.title("➕ Add Distributor")
 
@@ -359,7 +301,7 @@ if st.session_state.logged_in:
                         st.error(f"Error adding distributor: {e}")
     else:
         st.title("🏠 Home")
-        st.write("Welcome to the Model Manager dashboard.\n\nUse the sidebar to navigate through the application.")
+        st.write("Welcome to the Model Manager dashboard.")
 
 # --- Close DB connection ---
 conn.close()
