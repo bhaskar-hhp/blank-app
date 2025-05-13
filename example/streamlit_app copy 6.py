@@ -2,8 +2,6 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 import os
-from datetime import datetime
-
 # --- Clear cached data ---
 st.cache_data.clear()
 
@@ -48,23 +46,6 @@ CREATE TABLE IF NOT EXISTS dist (
 )
 """)
 
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS po (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT,
-    time TEXT,
-    dist TEXT,
-    location TEXT,
-    model TEXT,
-    color TEXT,
-    spec TEXT,
-    quantity INTEGER,
-    status TEXT,
-    remark TEXT,
-    added_by TEXT,
-    update_by TEXT
-)
-""")
 
 conn.commit()
 
@@ -110,18 +91,14 @@ if st.session_state.logged_in:
                 "👤 Add User", 
                 "🗑️ Delete User", 
                 "➕ Add/Delete Model", 
-                "🏪 Add/Delete Distributor",
-                "Create Order",
-                "Update Order"
+                "🏪 Add/Delete Distributor"
             ]
         )
     else:
         st.session_state.page = st.sidebar.radio(
             "Choose page",
             [
-                "📦 Dashboard",
-                "Create Order"
-
+                "📦 Dashboard"
             ]
         )
 
@@ -388,70 +365,6 @@ if st.session_state.logged_in:
                         st.rerun()
                     except Exception as e:
                         st.error(f"Error adding distributor: {e}")
-    # Create Order
-    elif st.session_state.page == "Create Order":
-        st.header("📦 Create Order")
-
-        # Get locations
-        cursor.execute("SELECT DISTINCT location FROM dist")
-        locations = [row[0] for row in cursor.fetchall()]
-        selected_location = st.selectbox("Select Location", locations)
-
-        # Filtered distributors
-        cursor.execute("SELECT name FROM dist WHERE location = ?", (selected_location,))
-        distributors = [row[0] for row in cursor.fetchall()]
-        selected_dist = st.selectbox("Select Distributor", distributors)
-
-        model = st.text_input("Model")
-        color = st.text_input("Color")
-        spec = st.text_area("Specification")
-        quantity = st.number_input("Quantity", min_value=1, step=1)
-
-        if st.button("Submit Order"):
-            now = datetime.now()
-            date = now.strftime("%Y-%m-%d")
-            time = now.strftime("%H:%M:%S")
-            status = "New"
-            remark = ""
-            added_by = st.session_state["username"]
-            update_by = added_by
-
-            cursor.execute("""
-                INSERT INTO po (date, time, dist, location, model, color, spec, quantity, status, remark, added_by, update_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (date, time, selected_dist, selected_location, model, color, spec, quantity, status, remark, added_by, update_by))
-            conn.commit()
-            st.success("✅ Order created successfully!")
-            st.balloons()     
- #
-        # Display all orders    
-    elif st.session_state.page ==  "Update Order":
-        if st.session_state["role"] not in ["Admin", "Backoffice"]:
-            st.warning("You do not have permission to update orders.")
-        else:
-            st.header("🛠️ Update Order")
-
-            cursor.execute("SELECT id, dist, model, status FROM po")
-            orders = cursor.fetchall()
-            if not orders:
-                st.info("No orders available.")
-            else:
-                options = [f"{o[0]} - {o[1]} - {o[2]} ({o[3]})" for o in orders]
-                selected_idx = st.selectbox("Select Order", range(len(options)), format_func=lambda i: options[i])
-                selected_id = orders[selected_idx][0]
-
-                cursor.execute("SELECT status, remark FROM po WHERE id = ?", (selected_id,))
-                current_status, current_remark = cursor.fetchone()
-
-                new_status = st.selectbox("Status", ["New", "Processing", "Completed", "Cancelled"], index=["New", "Processing", "Completed", "Cancelled"].index(current_status))
-                new_remark = st.text_area("Remark", value=current_remark)
-
-                if st.button("Update Order"):
-                    update_by = st.session_state["username"]
-                    cursor.execute("UPDATE po SET status = ?, remark = ?, update_by = ? WHERE id = ?",
-                                (new_status, new_remark, update_by, selected_id))
-                    conn.commit()
-                st.success("✅ Order updated successfully.")
     else:
         st.title("🏠 Home")
         st.write("Welcome to the Model Manager dashboard.\n\nUse the sidebar to navigate through the application.")
