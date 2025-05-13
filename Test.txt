@@ -1,4 +1,52 @@
-11 49
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    type TEXT,
+    pass TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS models (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    brand TEXT,
+    model TEXT,
+    color TEXT,
+    specs TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS dist (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    address TEXT,
+    location TEXT,
+    contact TEXT,
+    email TEXT,
+    added_by TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS po (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT,
+    time TEXT,
+    dist TEXT,
+    location TEXT,
+    model TEXT,
+    color TEXT,
+    spec TEXT,
+    quantity INTEGER,
+    status TEXT,
+    remark TEXT,
+    added_by TEXT,
+    update_by TEXT
+)
+""")
+
 this is line 10-05-2025 04:15 PM
 
 [Table 2 : "order" - field : date, time, dist, location, model, color, spec, quantity, status, remark, added_by - make 2 forms, (form 1 "Create Order" > access: ALL, can input dist, location, model, color, spec, quantity- other field will take auto, status="New",dist=take data from "dist" table "name" field, so on), (form 2 "'Update Order">access: ADMIN, here all the order can be edited with status & remark)] , (when we insert data in table 1 "dist", we have to insert new data to table "users" with users.name=uppercase(dist.name), users.password="admin@123", users.type="Guest". ), to create order - dist name will be selected filtered by location.
@@ -14,7 +62,7 @@ add field brand in Model
                 "🗑️ Delete User", 
                 "➕ Add/Delete Model", 
                 "🏪 Add/Delete Distributor"
-            ]        )
+            ]        
    
 cursor.execute("DELETE FROM dist")
 cursor.execute("DELETE FROM sqlite_sequence WHERE name='dist'")
@@ -23,3 +71,5 @@ conn.commit()
 DROP TABLE IF EXISTS dist;
 
 while login by standard or Guest type user, show only those order which are created by user.
+
+ Delete User > Select user ID to be make selectbox

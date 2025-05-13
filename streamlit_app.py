@@ -115,12 +115,39 @@ if st.session_state.logged_in:
                 "Update Order"
             ]
         )
+    elif st.session_state.usertype == "Standard":
+        st.session_state.page = st.sidebar.radio(
+            "Choose page",
+            [
+                "📦 Dashboard", 
+                "Create Order",
+                "Update Order"
+            ]
+        )
+    elif st.session_state.usertype == "Guest":
+        st.session_state.page = st.sidebar.radio(
+            "Choose page",
+            [
+                "📦 Dashboard", 
+                "Create Order"
+            ]
+        )
+    elif st.session_state.usertype == "Back Office":
+        st.session_state.page = st.sidebar.radio(
+            "Choose page",
+            [
+                "📦 Dashboard", 
+                "Create Order",
+                "Update Order"
+            ]
+        )
+    
     else:
         st.session_state.page = st.sidebar.radio(
             "Choose page",
             [
                 "📦 Dashboard",
-                "Create Order"
+            
 
             ]
         )
@@ -197,7 +224,7 @@ if st.session_state.logged_in:
             st.info("No users found.")
         else:
             st.dataframe(df)
-            selected_id = st.radio("Select User ID to Delete", df["id"])
+            selected_id = st.selectbox("Select User ID to Delete", df["id"])
             selected_user = df[df["id"] == selected_id]
             st.write("Selected User:")
             st.table(selected_user)
@@ -402,12 +429,45 @@ if st.session_state.logged_in:
         distributors = [row[0] for row in cursor.fetchall()]
         selected_dist = st.selectbox("Select Distributor", distributors)
 
-        model = st.text_input("Model")
-        color = st.text_input("Color")
-        spec = st.text_area("Specification")
+        # filtered brands then models, colors, specs
+        df_models = pd.read_sql_query("SELECT * FROM models", conn)
+        brands = df_models["brand"].unique().tolist()
+
+        if "selected_brand" not in st.session_state:
+            st.session_state.selected_brand = ""
+        if "custom_brand" not in st.session_state:
+            st.session_state.custom_brand = ""
+
+        def on_select_brand():
+            st.session_state.custom_brand = ""
+
+        def on_custom_brand():
+            st.session_state.selected_brand = ""
+
+        st.selectbox("Select Existing Brand", options=[""] + brands, key="selected_brand", on_change=on_select_brand)
+        
+
+        # Use typed brand if provided, else selected
+        brand = st.session_state.custom_brand.strip() if st.session_state.custom_brand.strip() else st.session_state.selected_brand
+
+        if brand:
+            filtered_by_brand = df_models[df_models["brand"] == brand]
+            models = filtered_by_brand["model"].unique().tolist()
+
+            if models:
+                selected_model = st.selectbox("Select Model", models)
+                filtered_by_model = filtered_by_brand[filtered_by_brand["model"] == selected_model]
+
+                colors = filtered_by_model["color"].unique().tolist()
+                selected_color = st.selectbox("Select Color", colors)
+
+                filtered_by_color = filtered_by_model[filtered_by_model["color"] == selected_color]
+                specs = filtered_by_color["specs"].unique().tolist()
+                selected_specs = st.selectbox("Select Specifications", specs)
+
         quantity = st.number_input("Quantity", min_value=1, step=1)
 
-        if st.button("Submit Order"):
+        if st.button("Create Order"):
             now = datetime.now()
             date = now.strftime("%Y-%m-%d")
             time = now.strftime("%H:%M:%S")
@@ -419,39 +479,58 @@ if st.session_state.logged_in:
             cursor.execute("""
                 INSERT INTO po (date, time, dist, location, model, color, spec, quantity, status, remark, added_by, update_by)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (date, time, selected_dist, selected_location, model, color, spec, quantity, status, remark, added_by, update_by))
+            """, (date, time, selected_dist, selected_location, selected_model, selected_color, selected_specs, quantity, status, remark, added_by, update_by))
             conn.commit()
             st.success("✅ Order created successfully!")
-            st.balloons()     
- #
-        # Display all orders    
-    elif st.session_state.page ==  "Update Order":
-        if st.session_state["role"] not in ["Admin", "Backoffice"]:
-            st.warning("You do not have permission to update orders.")
+            #st.toast("Saved successfully! ✅")
+            #st.snow()  
+            st.balloons()   
+    # Update Order    
+    elif st.session_state.page == "Update Order":
+    
+        st.header("🛠️ Update Order")
+
+        # Step 1: Select Status
+        status_options = ["New", "Processing", "Biling Done", "Dispatched", "Delivered", "Cancelled"]
+        selected_status = st.select_slider("Select Order Status Category", status_options)
+
+        # Step 2: Fetch orders with selected status
+        cursor.execute("SELECT id, dist, model, status FROM po WHERE status = ?", (selected_status,))
+        orders = cursor.fetchall()
+
+        if not orders:
+            st.info(f"No orders with status '{selected_status}'.")
         else:
-            st.header("🛠️ Update Order")
+            # Step 3: Get unique distributors from filtered orders
+            distributors = sorted(set(o[1] for o in orders))
+            selected_dist = st.selectbox("Filter by Distributor", distributors)
 
-            cursor.execute("SELECT id, dist, model, status FROM po")
-            orders = cursor.fetchall()
-            if not orders:
-                st.info("No orders available.")
+            # Step 4: Filter orders by selected distributor
+            filtered_orders = [o for o in orders if o[1] == selected_dist]
+
+            if not filtered_orders:
+                st.warning(f"No orders for distributor '{selected_dist}' under status '{selected_status}'.")
             else:
-                options = [f"{o[0]} - {o[1]} - {o[2]} ({o[3]})" for o in orders]
+                # Step 5: Select specific order
+                options = [f"{o[0]} - {o[1]} - {o[2]} ({o[3]})" for o in filtered_orders]
                 selected_idx = st.selectbox("Select Order", range(len(options)), format_func=lambda i: options[i])
-                selected_id = orders[selected_idx][0]
+                selected_id = filtered_orders[selected_idx][0]
 
+                # Step 6: Show current status & remark
                 cursor.execute("SELECT status, remark FROM po WHERE id = ?", (selected_id,))
                 current_status, current_remark = cursor.fetchone()
 
-                new_status = st.selectbox("Status", ["New", "Processing", "Completed", "Cancelled"], index=["New", "Processing", "Completed", "Cancelled"].index(current_status))
-                new_remark = st.text_area("Remark", value=current_remark)
+                new_status = st.selectbox("Update Status", status_options, index=status_options.index(current_status))
+                new_remark = st.text_area("Update Remark", value=current_remark)
 
                 if st.button("Update Order"):
                     update_by = st.session_state["username"]
                     cursor.execute("UPDATE po SET status = ?, remark = ?, update_by = ? WHERE id = ?",
                                 (new_status, new_remark, update_by, selected_id))
                     conn.commit()
-                st.success("✅ Order updated successfully.")
+                    st.success("✅ Order updated successfully.")
+                    st.balloons()  # Optional fun effect
+
     else:
         st.title("🏠 Home")
         st.write("Welcome to the Model Manager dashboard.\n\nUse the sidebar to navigate through the application.")
