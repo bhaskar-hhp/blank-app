@@ -1,0 +1,69 @@
+To connect github
+-Follow Source control option
+
+after connect github paste on termiinal
+------------------------
+git config --global user.email "bhaskar.hhp.photos2@gmail.com"
+git config --global user.name "bhaskar-hhp"
+
+create / install requirement.txt
+--------------------------------
+pip freeze > requirements.txt
+pip install -r requirements.txt  # if you have this
+
+install Streamlit 
+-----------------
+pip install streamlit
+streamlit run your_app.py --server.port=8080 --server.enableCORS=false
+or
+treamlit run streamlit_app.py --server.port=8501 --server.enableCORS=false
+
+
+To solve Streamlit run issue
+-----------------------------
+mkdir -p ~/.streamlit
+nano ~/.streamlit/config.toml
+
+then Paste:
+[server]
+headless = true
+port = 8080
+enableCORS = false
+enableXsrfProtection = false
+------------------------------ then
+export PATH=$HOME/.local/bin:$PATH
+echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+---------------------------------
+
+Firebase
+------------
+Command>install :
+pip install firebase-admin
+
+Download Your Firebase Admin SDK Key (JSON file):
+Go to https://console.firebase.google.com
+
+Select your project.
+Go to ⚙️ Settings → Project settings
+Click "Service accounts" tab.
+Click "Generate new private key" → it downloads a .json file.
+Upload it to your Cloud Shell 
+
+must enable Realtime Database in Firebase Console first:
+https://console.firebase.google.com/project/streamlit-a1f0f/database
+🔹 3. Enable Firestore (Recommended)
+Click “Firestore Database” in the left sidebar.
+Click "Create database"
+Choose:
+    Start in test mode (no auth rules yet)
+    Region (pick the default or closest to your users)
+Click Enable
+📌 Once it’s enabled, your Firestore is ready — and we can start adding data from Python.
+
+📌 After setup is done:
+You’ll land on the Firestore "Data" tab.
+It will say:
+“Start a collection” → That’s where you can manually add data (if needed).
+But we’ll do it from Python code, not manually.
+
