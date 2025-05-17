@@ -66,4 +66,7 @@ You’ll land on the Firestore "Data" tab.
 It will say:
 “Start a collection” → That’s where you can manually add data (if needed).
 But we’ll do it from Python code, not manually.
+------------------------------------------------------
 
+Database certificate : ""/home/swiftcomcdpl/key/firebase_key.json"" 
+-------------------------------------------------------
