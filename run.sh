@@ -1,2 +1,2 @@
 
-streamlit run streamlit_app.py --server.port=8080 --server.enableCORS=false
+streamlit run streamlit_hf.py --server.port=8080 --server.enableCORS=false

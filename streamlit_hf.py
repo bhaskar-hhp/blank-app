@@ -2,20 +2,20 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+
 # Initialize Firestore only once
-if "firebase_initialized" not in st.session_state:
+# Check if Firebase is already initialized
+if not firebase_admin._apps:
     cred = credentials.Certificate("/home/swiftcomcdpl/key/firebase_key.json")
     firebase_admin.initialize_app(cred)
-    st.session_state.db = firestore.client()
-    st.session_state.firebase_initialized = True
 
-db = st.session_state.db
+db = firestore.client()
 
 # Initialize page
 if "selected_page" not in st.session_state:
     st.session_state.selected_page = "Home"
 
-# Inject custom CSS for consistent button size and style
+# Inject custom CSS
 st.markdown("""
     <style>
     div.stButton > button {
@@ -46,31 +46,21 @@ with st.sidebar:
     if st.button("📊 Distributors"):
         st.session_state.selected_page = "Distributors"
 
-#---------------------------------------------------Side Radio against Button--------------------
-    # Show radio buttons only on USER Form page
+    # USER Form radio options
     if st.session_state.selected_page == "User Form":
-        report_option = st.radio(
+        user_option = st.radio(
             "Choose form",
             ("View User", "Add User", "Delete User", "Update User")
         )
-        st.write(f"You selected: {report_option}")
+        st.session_state.user_option = user_option
 
-
-
-    # Show radio buttons only on DISTRBUTORs page
+    # DISTRIBUTORS radio options
     if st.session_state.selected_page == "Distributors":
-        report_option = st.radio(
+        dist_option = st.radio(
             "Choose form",
             ("View Distributor", "Add Distributor", "Delete Distributor", "Update Distributor")
         )
-        st.write(f"You selected: {report_option}")
-        
-        
-
-
-
-
-#---------------------------------------------------page while click on Button--------------------
+        st.session_state.dist_option = dist_option
 
 # Render selected page
 page = st.session_state.selected_page
@@ -81,6 +71,7 @@ if page == "Home":
 
 elif page == "User Form":
     st.title("📝 User Form Page")
+
     # Handle Add User
     if st.session_state.get("user_option") == "Add User":
         st.subheader("Add New User")
@@ -113,6 +104,25 @@ elif page == "User Form":
 
             st.success(f"✅ User '{name}' added with ID {new_id}.")
 
+    if st.session_state.get("user_option") == "View User":
+        st.subheader("📋 List of Users")
+
+        try:
+            users_ref = db.collection("users")
+            docs = db.collection("users").get()
+
+            user_data = []
+            for doc in docs:
+                user = doc.to_dict()
+                user["doc_id"] = doc.id
+                user_data.append(user)
+
+            if user_data:
+                st.dataframe(user_data)
+            else:
+                st.info("No users found.")
+        except Exception as e:
+            st.error(f"Error fetching users: {e}")
 
 elif page == "Distributors":
     st.title("📊 Distributors Page")
