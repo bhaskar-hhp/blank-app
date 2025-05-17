@@ -1,0 +1,4 @@
+
+Database certificate path : "/home/swiftcomcdpl/key/firebase_key.json"
+database path to be used in HF : "/app/src/firebase_key.json"
+-------------------------------------------------------

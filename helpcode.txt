@@ -68,5 +68,11 @@ It will say:
 But we’ll do it from Python code, not manually.
 ------------------------------------------------------
 
-Database certificate : ""/home/swiftcomcdpl/key/firebase_key.json"" 
+Database certificate path : "/home/swiftcomcdpl/key/firebase_key.json"
+database path to be used in HF : "/app/src/firebase_key.json"
 -------------------------------------------------------
+Can make label background
+st.markdown("""
+        <div style="background-color:#74a8a6; padding:20px; border-radius:10px">
+            <h3>📝 Custom Form</h3> <h4> this is h4 text </h4>
+    """, unsafe_allow_html=True)
