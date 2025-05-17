@@ -75,6 +75,20 @@ elif page == "User Form":
     # Handle Add User
     if st.session_state.get("user_option") == "Add User":
         st.subheader("Add New User")
+#border
+        st.markdown("""
+            <style>
+            .custom-form {
+                background-color: #497a78; /* Light blue */
+                padding: 12px;
+                border-radius: 10px;
+                box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+            }
+            </style>
+        """, unsafe_allow_html=True)
+        with st.container():
+            st.markdown('<div class="custom-form">', unsafe_allow_html=True)
+#border closed
 
         with st.form("add_user_form"):
             name = st.text_input("Name")
@@ -106,6 +120,21 @@ elif page == "User Form":
 
     if st.session_state.get("user_option") == "View User":
         st.subheader("📋 List of Users")
+
+#border
+        st.markdown("""
+            <style>
+            .custom-form {
+                background-color: #497a78; /* Light blue */
+                padding: 12px;
+                border-radius: 10px;
+                box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+            }
+            </style>
+        """, unsafe_allow_html=True)
+        with st.container():
+            st.markdown('<div class="custom-form">', unsafe_allow_html=True)
+#border closed
 
         try:
             users_ref = db.collection("users")
