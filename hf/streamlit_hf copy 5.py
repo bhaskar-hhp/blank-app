@@ -68,25 +68,20 @@ def show_sidebar():
     with st.sidebar:
         st.markdown(f"**👤 {st.session_state.get('username')} ({user_role})**")
         st.title("📂 Navigation")
-
+        
         # All roles: Home
         if st.button("🏠 Home"):
             st.session_state.selected_page = "Home"
 
         if st.button("🕒 Attendance"):
-            st.session_state.selected_page = "Attendance"
-        
-        if st.button("📦 Order"):
-            st.session_state.selected_page = "Order"
-
-        if st.button("🚚 Logistics"):
-            st.session_state.selected_page = "Logistics"
-
-        if st.button("🛠️ Utility"):
-            st.session_state.selected_page = "Utility"
+            st.session_state.selected_page = "Home"
 
         # Admin & Standard: Users
-        if user_role in ["Admin", "Back Office"]:
+        if user_role in ["Admin", "Back office"]:
+            if st.button("📝 Users"):
+                st.session_state.selected_page = "Users"
+
+        if user_role in ["Admin", "Back office"]:
             if st.button("📝 Users"):
                 st.session_state.selected_page = "Users"
 
@@ -94,9 +89,6 @@ def show_sidebar():
         if user_role == "Admin":
             if st.button("📊 Distributors"):
                 st.session_state.selected_page = "Distributors"
-
-        if st.button("ℹ️ About"):
-            st.session_state.selected_page = "About"
 
         # Logout button
         if st.button("🚪 Logout"):
@@ -132,7 +124,7 @@ def users_page():
         st.subheader("Add New User")
         with st.form("add_user_form"):
             name = st.text_input("Name")
-            user_type = st.selectbox("Type", ["Admin", "Back Office","Standard", "Guest"])
+            user_type = st.selectbox("Type", ["Admin", "Standard", "Back office", "Guest"])
             password = st.text_input("Password", type="password")
             submitted = st.form_submit_button("Submit")
         if submitted:
