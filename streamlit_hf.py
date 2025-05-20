@@ -8,14 +8,14 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
-
+st.Page.title="Swiftcom DMS"
 # -------------------------------
 # 🔐 LOGIN SECTION
 # -------------------------------
 def login():
     st.title("🔐 Login")
     with st.form("login_form"):
-        username = st.text_input("Username")
+        username = st.text_input("Username").strip().upper()
         password = st.text_input("Password", type="password")
         submitted = st.form_submit_button("Login")
         if submitted:
@@ -48,7 +48,7 @@ st.markdown("""
         height: 45px;
         font-size: 16px;
         margin-bottom: 8px;
-        background-color: #31333f;
+        background-color: #888888;
         color: white;
         border: none;
         border-radius: 6px;
@@ -66,7 +66,7 @@ st.markdown("""
 def show_sidebar():
     user_role = st.session_state.get("user_role")
     with st.sidebar:
-        st.markdown(f"**👤 {st.session_state.get('username')} ({user_role})**")
+        st.markdown(f"**👤 {st.session_state.get('username')} (:blue[{user_role}])**")
         st.title("📂 Navigation")
 
         # All roles: Home
@@ -124,14 +124,15 @@ def users_page():
         options.append("Add User")
     if user_role == "Admin":
         options.extend(["Delete User", "Update User"])
-
-    user_option = st.radio("Choose action", options, horizontal=True)
+        #st.divider()
+        user_option = st.radio("Choose action", options, horizontal=True)
+        st.divider()
 
     # Add User
     if user_option == "Add User":
         st.subheader("Add New User")
         with st.form("add_user_form"):
-            name = st.text_input("Name")
+            name = st.text_input("Name").strip().upper()
             user_type = st.selectbox("Type", ["Admin", "Back Office","Standard", "Guest"])
             password = st.text_input("Password", type="password")
             submitted = st.form_submit_button("Submit")
