@@ -1,6 +1,17 @@
-Test line from GitHub 19-05-2025 04:29 PM
+       if st.button("📦 Order"):
+            st.session_state.selected_page = "Order"
+
+        if st.button("🚚 Logistics"):
+            st.session_state.selected_page = "Logistics"
+
+        if st.button("🛠️ Utility"):
+            st.session_state.selected_page = "Utility"
+
 ---------------------------------
 
+        if st.button("🕒 Attendance"):
+        if st.button("ℹ️ About"):
+ 
 
 
 cursor.execute("""
