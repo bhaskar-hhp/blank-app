@@ -263,7 +263,7 @@ def distributors_page():
         if records:   
             # Specify the desired column order
             df = pd.DataFrame(records)
-            column_order = ["name", "location","address", "contact", "email"]  # Rearrange as needed
+            column_order = ["name", "address", "contact", "email"]  # Rearrange as needed
             ordered_columns = [col for col in column_order if col in df.columns] + [col for col in df.columns if col not in column_order and col != "id"]
             st.dataframe(df[ordered_columns])
         else:
@@ -271,35 +271,22 @@ def distributors_page():
 
     elif option == "Add":
         st.subheader("Add Distributor")
-        
-
-        records = get_distributors()
-        df1 = pd.DataFrame(records)
-        loc = st.selectbox("Location", df1["location"]).strip().upper()
-        st.write("if location not in the list, prefer add in location Textbox")
-        st.divider()
         name = st.text_input("Name").strip().upper()
-
-        if st.checkbox("Add New Loaction"):
-            location = st.text_input("Location").strip().upper()
-        else:
-            location = loc
-
         address = st.text_area("Address (multiline)")
         contact = st.text_input("Contact")
         email = st.text_input("Email")
         if st.button("Add"):
             if name:
-                add_distributor({"name": name, "location": location,"address": address, "contact": contact, "email": email})
+                add_distributor({"name": name, "address": address, "contact": contact, "email": email})
                 st.success("Distributor added.")
             else:
                 st.warning("Name is required.")
 
     elif option == "Bulk Add":
         st.subheader("Bulk Add Distributors (CSV)")
-        st.markdown("CSV columns: name, location, address, contact, email")
+        st.markdown("CSV columns: name, address, contact, email")
         # Download CSV template
-        template_df = pd.DataFrame(columns=["name", "location", "address", "contact", "email"])
+        template_df = pd.DataFrame(columns=["name", "address", "contact", "email"])
         csv = template_df.to_csv(index=False).encode("utf-8")
         st.download_button("📥 Download CSV Template", csv, "distributor_template.csv", "text/csv")
 
@@ -307,12 +294,12 @@ def distributors_page():
         file = st.file_uploader("Upload CSV", type="csv")
         if file:
             df = pd.read_csv(file)
-            if all(col in df.columns for col in ["name", "location", "address", "contact", "email"]):
+            if all(col in df.columns for col in ["name", "address", "contact", "email"]):
                 for _, row in df.iterrows():
                     add_distributor(row.to_dict())
                 st.success("Bulk upload complete.")
             else:
-                st.error("CSV must have columns: name, location, address, contact, email")
+                st.error("CSV must have columns: name, address, contact, email")
 
     elif option == "Update":
         st.subheader("Update Distributor")
@@ -321,15 +308,13 @@ def distributors_page():
             df = pd.DataFrame(records)
             selected = st.selectbox("Select Distributor by Name", df["name"])
             selected_data = df[df["name"] == selected].iloc[0]
-            st.divider()
             doc_id = selected_data["id"]
-            name = st.text_input("Name", selected_data["name"]).strip().upper()
-            location = st.text_input("Location", selected_data["location"]).strip().upper()
+            name = st.text_input("Name", selected_data["name"])
             address = st.text_area("Address", selected_data["address"])
             contact = st.text_input("Contact", selected_data["contact"])
             email = st.text_input("Email", selected_data["email"])
             if st.button("Update"):
-                update_distributor(doc_id, {"name": name, "location": location,"address": address, "contact": contact, "email": email})
+                update_distributor(doc_id, {"name": name, "address": address, "contact": contact, "email": email})
                 st.success("Distributor updated.")
         else:
             st.info("No distributors available.")
