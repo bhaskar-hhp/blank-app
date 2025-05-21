@@ -88,12 +88,12 @@ def show_sidebar():
             st.session_state.selected_page = "Utility"
 
         # Admin & Standard: Users
-        if user_role in ["Admin", "Back Office"]:
+        if user_role in ["Admin"]:
             if st.button("📝 Users"):
                 st.session_state.selected_page = "Users"
 
         # Admin only: Distributors
-        if user_role == "Admin":
+        if user_role in ["Admin", "Back Office"]:
             if st.button("📊 Distributors"):
                 st.session_state.selected_page = "Distributors"
 
@@ -132,7 +132,7 @@ def users_page():
 
     # Choose form actions
     options = ["View User"]
-    if user_role in ["Admin", "Standard"]:
+    if user_role in ["Admin", "Back Office"]:
         options.append("Add User")
     if user_role == "Admin":
         options.extend(["Delete User", "Update User"])
@@ -213,8 +213,8 @@ def users_page():
 # -----------------------------------------Distributors placeholder
 
 def distributors_page():
-    if st.session_state.get("user_role") != "Admin":
-        st.error("Access denied.")
+    if st.session_state.get("user_role") not in ["Admin", "Back Office"]:
+        st.error("Access denied (Distributors page).")
         return
         #---------------------- individual page title------------------
     st.markdown(
