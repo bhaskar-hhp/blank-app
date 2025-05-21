@@ -483,7 +483,7 @@ if st.session_state.logged_in:
             """, (date, time, selected_dist, selected_location, selected_model, selected_color, selected_specs, quantity, status, remark, added_by, update_by))
             conn.commit()
             st.success("✅ Order created successfully!")
-            #st.toast("Saved successfully! ✅")
+            st.toast("Saved successfully! ✅")
             #st.snow()  
             st.balloons()   
     

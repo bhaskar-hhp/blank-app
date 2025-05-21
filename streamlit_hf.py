@@ -3,6 +3,8 @@ import pandas as pd
 import firebase_admin
 from firebase_admin import credentials, firestore
 import io
+from datetime import datetime
+
 
 # Initialize Firebase
 if not firebase_admin._apps:
@@ -77,25 +79,32 @@ def show_sidebar():
 
         if st.button("🕒 Attendance"):
             st.session_state.selected_page = "Attendance"
-        
-        if st.button("📦 Order"):
-            st.session_state.selected_page = "Order"
 
-        if st.button("🚚 Logistics"):
-            st.session_state.selected_page = "Logistics"
+        # Admin , "Standard", "Guest": -----------------------------------------------------------------------------
+        if user_role in ["Admin", "Standard", "Guest"]:
+            if st.button("📦Purchase Order"):
+                st.session_state.selected_page = "Order"
 
-        if st.button("🛠️ Utility"):
-            st.session_state.selected_page = "Utility"
+        # Admin , Back Office: -----------------------------------------------------------------------------
+        if user_role in ["Admin", "Back Office"]:
+            if st.button("📦 Update Order"):
+                st.session_state.selected_page = "Update Order"
+            if st.button("📊 Distributors"):
+                st.session_state.selected_page = "Distributors"
+            if st.button("🚚 Logistics"):
+                st.session_state.selected_page = "Logistics"
 
-        # Admin & Standard: Users
+        # Admin Only --------------------------------------------------------------------------------------
         if user_role in ["Admin"]:
             if st.button("📝 Users"):
                 st.session_state.selected_page = "Users"
+            if st.button("🛠️ Utility"):
+                st.session_state.selected_page = "Utility"
+            if st.button("🕒 Attendance Managment"):
+                st.session_state.selected_page = "Attendance Managment"
 
-        # Admin only: Distributors
-        if user_role in ["Admin", "Back Office"]:
-            if st.button("📊 Distributors"):
-                st.session_state.selected_page = "Distributors"
+        # --------------------------------------------------------------------------------------------------
+
 
         if st.button("ℹ️ About"):
             st.session_state.selected_page = "About"
@@ -214,7 +223,7 @@ def users_page():
 
 def distributors_page():
     if st.session_state.get("user_role") not in ["Admin", "Back Office"]:
-        st.error("Access denied (Distributors page).")
+        st.error("Access denied.")
         return
         #---------------------- individual page title------------------
     st.markdown(
@@ -325,6 +334,8 @@ def distributors_page():
 
 # ---------------------------------------------------------------Order Page----------------------
 def order_page():
+    if st.session_state.get("user_role") not in ["Admin", "Standard", "Guest"]:
+        st.error("Access denied.")
         #---------------------- individual page title------------------
     st.markdown(
         """
@@ -335,13 +346,13 @@ def order_page():
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
-    if st.session_state.get("user_role") != "Admin":
-        st.error("Access denied.")
-        return
 
 # ---------------------------------------------------------------Logistics Page----------------------
 def logistics_page():
-        #---------------------- individual page title------------------
+    if st.session_state.get("user_role") not in ["Admin", "Back Office"]:
+        st.error("Access denied.")
+
+    #---------------------- individual page title------------------
     st.markdown(
         """
         <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
@@ -351,12 +362,11 @@ def logistics_page():
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
-    if st.session_state.get("user_role") != "Admin":
-        st.error("Access denied.")
-        return
 
 # ---------------------------------------------------------------Utility Page----------------------
 def utility_page():
+    if st.session_state.get("user_role") not in ["Admin"]:
+        st.error("Access denied.")
         #---------------------- individual page title------------------
     st.markdown(
         """
@@ -367,10 +377,7 @@ def utility_page():
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
-    if st.session_state.get("user_role") != "Admin":
-        st.error("Access denied.")
-        return
-
+    
 
 # ---------------------------------------------------------------Attendance Page----------------------
 def attendance_page():
@@ -384,9 +391,10 @@ def attendance_page():
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
-    if st.session_state.get("user_role") != "Admin":
-        st.error("Access denied.")
-        return
+
+    st.write("Attendance Page comming soon")
+
+
 
 # ---------------------------------------------------------------About Page----------------------
 def about_page():
@@ -400,12 +408,45 @@ def about_page():
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
-    if st.session_state.get("user_role") != "Admin":
+
+    st.write("About page is comming soon")
+
+
+# ---------------------------------------------------------------Update Order Page----------------------
+def update_order_page():
+    if st.session_state.get("user_role") not in ["Admin", "Back Office"]:
         st.error("Access denied.")
-        return
+        #---------------------- individual page title------------------
+    st.markdown(
+        """
+        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+            📦 Update Order
+        </h5>
+        """,
+        unsafe_allow_html=True
+    )
+    #--------------------------------------------------------------------
+
+    st.write("Update Order page is comming soon")
 
 
 
+# ---------------------------------------------------------------Attendance Managment Page----------------------
+def att_managment_page():
+    if st.session_state.get("user_role") not in ["Admin"]:
+        st.error("Access denied.")
+        #---------------------- individual page title------------------
+    st.markdown(
+        """
+        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+            🕒 Attendance Managment
+        </h5>
+        """,
+        unsafe_allow_html=True
+    )
+    #--------------------------------------------------------------------
+
+    st.write("Attendance Managment page is comming soon")
 
 
 # -------------------------------
@@ -439,7 +480,11 @@ def main():
         attendance_page()
     elif page == "About":
         about_page()
-    
+    elif page == "Update Order":
+        update_order_page()
+    elif page == "Attendance Managment":
+        att_managment_page()
+
 
 
 if __name__ == "__main__":

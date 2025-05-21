@@ -11,7 +11,12 @@
 
         if st.button("🕒 Attendance"):
         if st.button("ℹ️ About"):
+
+            if st.button("📦 Update Order"):
+                st.session_state.selected_page = "Update Order"
  
+            if st.button("🕒 Attendance Managment"):
+                st.session_state.selected_page = "Attendance Managment"
 
 
 cursor.execute("""
