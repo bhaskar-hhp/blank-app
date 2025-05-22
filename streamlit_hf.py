@@ -90,6 +90,8 @@ def show_sidebar():
         if user_role in ["Admin", "Back Office"]:
             if st.button("📦 Update Order"):
                 st.session_state.selected_page = "Update Order"
+            if st.button("📱 Devices"):
+                st.session_state.selected_page = "Devices"
             if st.button("📊 Distributors"):
                 st.session_state.selected_page = "Distributors"
             if st.button("🚚 Logistics"):
@@ -363,6 +365,28 @@ def order_page():
     )
     #--------------------------------------------------------------------
 
+
+
+
+# ---------------------------------------------------------------Order Page----------------------
+def devices_page():
+    if st.session_state.get("user_role") not in ["Admin", "Back Office"]:
+        st.error("Access denied.")
+        #---------------------- individual page title------------------
+    st.markdown(
+        """
+        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+            📱 Devices
+        </h5>
+        """,
+        unsafe_allow_html=True
+    )
+    #--------------------------------------------------------------------
+    
+
+
+
+
 # ---------------------------------------------------------------Logistics Page----------------------
 def logistics_page():
     if st.session_state.get("user_role") not in ["Admin", "Back Office"]:
@@ -501,6 +525,8 @@ def main():
         update_order_page()
     elif page == "Attendance Managment":
         att_managment_page()
+    elif page == "Devices":
+        devices_page()
 
 
 
