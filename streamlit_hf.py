@@ -13,6 +13,7 @@ if not firebase_admin._apps:
 
 db = firestore.client()
 st.Page.title="Swiftcom DMS"
+st.set_page_config(layout="wide")
 # -------------------------------
 # 🔐 LOGIN SECTION
 # -------------------------------
@@ -476,6 +477,7 @@ def main():
     if "selected_page" not in st.session_state:
         st.session_state.selected_page = "Home"
 
+    
     show_sidebar()
 
     page = st.session_state.selected_page
