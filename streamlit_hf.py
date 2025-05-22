@@ -14,11 +14,16 @@ if not firebase_admin._apps:
 db = firestore.client()
 st.Page.title="Swiftcom DMS"
 st.set_page_config(layout="wide")
+
+
+
 # -------------------------------
 # 🔐 LOGIN SECTION
 # -------------------------------
+@st.dialog("🔐 Login")
 def login():
-    st.title("🔐 Login")
+    
+    #st.title("🔐 Login")
     with st.form("login_form"):
         username = st.text_input("Username").strip().upper()
         password = st.text_input("Password", type="password")
@@ -382,11 +387,197 @@ def devices_page():
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
-    
+    tab_view, tab_add, tab_delete, tab_update = st.tabs([" Existing Device ", "Add ", " Delete ", " Update "])
+    with tab_view:
+        #st.write("Add a Device")
+        container = st.container(border=True)
+        #container.write("Add a Device")
+        docs = db.collection("device").get()
+        user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
+        if user_data:
+            df = pd.DataFrame(user_data)
+            column_order = ["brand","type", "model", "spec", "color"]  # Rearrange as needed
+            ordered_columns = [col for col in column_order if col in df.columns] + [col for col in df.columns if col not in column_order and col != "doc_id"]
+            container.dataframe(df[ordered_columns])
+        else:
+            container.info("No Device found.")
 
+    with tab_add:
+        # Simulated Firestore fetch
+        docs = db.collection("device").get()
+        user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
+        df = pd.DataFrame(user_data)
 
+        # Initialize session state for new entries
+        if "new_brand" not in st.session_state:
+            st.session_state.new_brand = ""
+        if "new_type" not in st.session_state:
+            st.session_state.new_type = ""
 
+        # Unique values from database
+        brand_options = sorted(df["brand"].dropna().unique().tolist())
+        type_options = sorted(df["type"].dropna().unique().tolist())
 
+        # Add "New Brand" and "Add New" options
+        brand_options += ["Add New Brand"]
+        type_options += ["Add New Type"]
+
+        with st.form("add_device_form"):
+            # --- Brand Selection ---
+            selected_brand = st.selectbox("Select Brand", brand_options)
+
+            if selected_brand == "Add New Brand":
+                st.session_state.new_brand = st.text_input("Enter New Brand Name").strip().upper()
+                brand = st.session_state.new_brand if st.session_state.new_brand else None
+            else:
+                brand = selected_brand
+
+            # --- Type Selection ---
+            selected_type = st.selectbox("Select Type", type_options)
+
+            if selected_type == "Add New Type":
+                st.session_state.new_type = st.text_input("Enter New Type").strip().capitalize()
+                dev_type = st.session_state.new_type if st.session_state.new_type else None
+            else:
+                dev_type = selected_type
+
+            # Other Fields
+            color = st.text_input("Color")
+            model = st.text_input("Model")
+            spec = st.text_area("Specifications")
+
+            # Submit Button
+            submitted = st.form_submit_button("Add Device")
+
+            if submitted:
+                if not brand or not dev_type:
+                    st.warning("Please enter both a valid Brand and Type.")
+                else:
+                    # Here you can write to Firestore or show results
+                    new_device = {
+                        "brand": brand,
+                        "type": dev_type,
+                        "color": color,
+                        "model": model,
+                        "spec": spec
+                    }
+                    # db.collection("device").add(new_device)  # Uncomment to add to Firestore
+                    st.success("Device added successfully!")
+                    st.json(new_device)
+
+    with tab_delete:
+        # Fetch device data
+        docs = db.collection("device").get()
+        user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
+        df = pd.DataFrame(user_data)
+
+        st.header("Delete Device")
+
+        if df.empty:
+            st.info("No devices available.")
+        else:
+            # Step 1: Select Brand
+            brands = sorted(df["brand"].dropna().unique())
+            selected_brand = st.selectbox("Select Brand", brands)
+
+            # Step 2: Filter by Brand → Type
+            type_df = df[df["brand"] == selected_brand]
+            types = sorted(type_df["type"].dropna().unique())
+            selected_type = st.selectbox("Select Type", types)
+
+            # Step 3: Filter by Brand + Type → Model
+            model_df = type_df[type_df["type"] == selected_type]
+            models = sorted(model_df["model"].dropna().unique())
+            selected_model = st.selectbox("Select Model", models)
+
+            # Step 4: Filter by Brand + Type + Model → Color
+            color_df = model_df[model_df["model"] == selected_model]
+            colors = sorted(color_df["color"].dropna().unique())
+            selected_color = st.selectbox("Select Color", colors)
+
+            # Step 5: Filter by Brand + Type + Model + Color → Spec
+            spec_df = color_df[color_df["color"] == selected_color]
+            specs = sorted(spec_df["spec"].dropna().unique())
+            selected_spec = st.selectbox("Select Specification", specs)
+
+            # Final match
+            final_df = spec_df[spec_df["spec"] == selected_spec]
+
+            if not final_df.empty:
+                doc_id = final_df.iloc[0]["doc_id"]
+                st.markdown(f"**Ready to delete:** `{selected_brand} | {selected_type} | {selected_model} | {selected_color} | {selected_spec}`")
+
+                if st.button("Delete Device"):
+                    db.collection("device").document(doc_id).delete()
+                    st.success("Device deleted successfully!")
+                    st.experimental_rerun()
+            else:
+                st.warning("Matching device not found.")
+
+    with tab_update:
+        # Load data from Firestore
+        docs = db.collection("device").get()
+        user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
+        df = pd.DataFrame(user_data)
+
+        st.header("Update Device")
+
+        if df.empty:
+            st.info("No devices available.")
+        else:
+            # Step 1: Select Brand
+            brands = sorted(df["brand"].dropna().unique())
+            selected_brand = st.selectbox("Select Brand", brands, key="brand_select")
+
+            # Step 2: Filter by Brand → Type
+            type_df = df[df["brand"] == selected_brand]
+            types = sorted(type_df["type"].dropna().unique())
+            selected_type = st.selectbox("Select Type", types, key="type_select")
+
+            # Step 3: Filter by Brand + Type → Model
+            model_df = type_df[type_df["type"] == selected_type]
+            models = sorted(model_df["model"].dropna().unique())
+            selected_model = st.selectbox("Select Model", models, key="model_select")
+
+            # Step 4: Filter by Brand + Type + Model → Color
+            color_df = model_df[model_df["model"] == selected_model]
+            colors = sorted(color_df["color"].dropna().unique())
+            selected_color = st.selectbox("Select Color", colors, key="color_select")
+
+            # Step 5: Filter by Brand + Type + Model + Color → Spec
+            spec_df = color_df[color_df["color"] == selected_color]
+            specs = sorted(spec_df["spec"].dropna().unique())
+            selected_spec = st.selectbox("Select Specification", specs, key="spec_select")
+
+            # Final filtered record
+            final_df = spec_df[spec_df["spec"] == selected_spec]
+
+            if not final_df.empty:
+                record = final_df.iloc[0]
+                doc_id = record["doc_id"]
+
+                st.markdown("### Edit Device Fields")
+
+                # Editable input fields with unique keys
+                new_brand = st.text_input("Brand", value=record["brand"], key="edit_brand")
+                new_type = st.text_input("Type", value=record["type"], key="edit_type")
+                new_model = st.text_input("Model", value=record["model"], key="edit_model")
+                new_color = st.text_input("Color", value=record["color"], key="edit_color")
+                new_spec = st.text_area("Specification", value=record["spec"], key="edit_spec")
+
+                if st.button("Update Device", key="update_button"):
+                    db.collection("device").document(doc_id).update({
+                        "brand": new_brand.strip().upper(),
+                        "type": new_type.strip().capitalize(),
+                        "model": new_model.strip(),
+                        "color": new_color.strip(),
+                        "spec": new_spec.strip()
+                    })
+                    st.success("Device updated successfully!")
+                    st.experimental_rerun()
+            else:
+                st.warning("Matching device not found.")
+        
 # ---------------------------------------------------------------Logistics Page----------------------
 def logistics_page():
     if st.session_state.get("user_role") not in ["Admin", "Back Office"]:
