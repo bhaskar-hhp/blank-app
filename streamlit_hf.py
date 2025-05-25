@@ -390,6 +390,11 @@ def get_unique_values():
             types.add(data["type"])
     return sorted(brands), sorted(types)
 
+def device_exists(article, model):
+    # Implement your DB lookup logic here.
+    # Return True if the device already exists, else False.
+    pass
+
 
 # ---------------------------------------------------------------Order Page----------------------
 def devices_page():
@@ -405,7 +410,7 @@ def devices_page():
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
-    tab_view, tab_add, tab_add_bulk, tab_add_bulk_paste, tab_delete,tab_delete_all, tab_update = st.tabs([" Existing Device ", "Add ", "Add Bulk .csv", "Add Bulk Paste",  " Delete ", " Delete All ", " Update "])
+    tab_view, tab_add, tab_add_bulk, tab_delete,tab_delete_all, tab_update = st.tabs([" Existing Device ", "Add ", "Add Bulk .csv",  " Delete ", " Delete All ", " Update "])
     with tab_view:
                 
         st.subheader("Existing Devices")
@@ -535,9 +540,7 @@ def devices_page():
                     #st.rerun()
     
     with tab_add_bulk:
-        # --- Streamlit Bulk Add UI ---
         st.subheader("📦 Bulk Add Devices")
-
         st.markdown("**CSV format:** `article`,`brand`,`type`,`model`,`stock`")
 
         # Download template
@@ -545,32 +548,41 @@ def devices_page():
         csv = template_df.to_csv(index=False).encode("utf-8")
         st.download_button("📥 Download CSV Template", csv, "device_template.csv", "text/csv")
 
+        # Initialize session state
+        if "bulk_upload_done" not in st.session_state:
+            st.session_state.bulk_upload_done = False
+
         # Upload filled CSV
         file = st.file_uploader("Upload your CSV", type="csv")
-        if file:
+
+        # Show upload button only if file is uploaded and not already processed
+        if file and not st.session_state.bulk_upload_done:
             try:
                 df = pd.read_csv(file)
                 required_columns = {"article", "brand", "type", "model", "stock"}
 
                 if required_columns.issubset(df.columns):
-                    for _, row in df.iterrows():
-                        data = row.to_dict()
-                        try:
-                            data["stock"] = int(data["stock"])
-                        except:
-                            data["stock"] = 0
-                        add_device(data)
+                    with st.spinner("Adding devices..."):
+                        for _, row in df.iterrows():
+                            data = row.to_dict()
+                            try:
+                                data["stock"] = int(data["stock"])
+                            except:
+                                data["stock"] = 0
+                            add_device(data)
 
                     st.success("✅ Devices added successfully.")
                     st.dataframe(df)
-                    
+                    st.session_state.bulk_upload_done = True  # Set flag to prevent reprocessing
                 else:
                     st.error("❌ CSV must have columns: article, brand, type, model, stock")
             except Exception as e:
                 st.error(f"❌ Error reading CSV: {e}")
-            
-    #with tab_add_bulk_paste:
 
+        # Optionally allow user to reset for a new upload
+        if st.session_state.bulk_upload_done:
+            if st.button("🔄 Upload Another File"):
+                st.session_state.bulk_upload_done = False
 
 
 

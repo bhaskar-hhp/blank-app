@@ -105,3 +105,4 @@ DROP TABLE IF EXISTS dist;
 while login by standard or Guest type user, show only those order which are created by user.
 
  Delete User > Select user ID to be make selectbox
+test
