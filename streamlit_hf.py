@@ -410,10 +410,10 @@ def devices_page():
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
-    tab_view, tab_add, tab_add_bulk, tab_delete,tab_delete_all, tab_update = st.tabs([" Existing Device ", "Add ", "Add Bulk .csv",  " Delete ", " Delete All ", " Update "])
+    tab_view, tab_add, tab_add_bulk, tab_delete,tab_delete_all, tab_update = st.tabs(["📱 Existing Device ", "➕ Add Device ", "📦➕ Add Bulk Device.csv",  " 🗑️ Delete ", " 📦🗑️ Delete All ", " ✏️ Update "])
     with tab_view:
                 
-        st.subheader("Existing Devices")
+        st.subheader("📱 Existing Devices")
 
         # Fetch devices from Firestore (simulate)
         docs = db.collection("device").get()
@@ -492,7 +492,7 @@ def devices_page():
    
         with st.form("add_device_form"):
             # --- Brand Selection ---
-            st.subheader("Add Device")
+            st.subheader(" ➕ Add Device")
             if not df.empty:
                 selected_brand = st.selectbox("Select Brand", brand_options)
             else:
@@ -592,7 +592,7 @@ def devices_page():
         user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
         df = pd.DataFrame(user_data)
 
-        st.header("Delete Device")
+        st.header(" 🗑️ Delete Device")
 
         if df.empty:
             st.info("No devices available.")
@@ -681,7 +681,7 @@ def devices_page():
         user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
         df = pd.DataFrame(user_data)
 
-        st.header("Update Device")
+        st.header(" ✏️ Update Device")
 
         if df.empty:
             st.info("No devices available.")
