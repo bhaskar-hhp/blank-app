@@ -163,20 +163,30 @@ def users_page():
         st.subheader("Add New User")
         with st.form("add_user_form"):
             name = st.text_input("Name").strip().upper()
-            user_type = st.selectbox("Type", ["Admin", "Back Office","Standard", "Guest"])
+            user_type = st.selectbox("Type", ["Admin", "Back Office", "Standard", "Guest"])
             password = st.text_input("Password", type="password")
             submitted = st.form_submit_button("Submit")
+
         if submitted:
             users_ref = db.collection("users")
             all_users = users_ref.stream()
+            
+            # Check for duplicate user name
+            name_exists = False
             max_id = 0
             for doc in all_users:
                 data = doc.to_dict()
+                if data.get("name") == name:
+                    name_exists = True
                 if isinstance(data.get("id"), int):
                     max_id = max(max_id, data["id"])
-            new_id = max_id + 1
-            users_ref.add({"id": new_id, "name": name, "type": user_type, "pass": password})
-            st.success(f"✅ User '{name}' added with ID {new_id}.")
+
+            if name_exists:
+                st.error(f"⚠️ User name '{name}' already exists. Please choose another name.")
+            else:
+                new_id = max_id + 1
+                users_ref.add({"id": new_id, "name": name, "type": user_type, "pass": password})
+                st.success(f"✅ User '{name}' added with ID {new_id}.")
 
     # View User
     elif user_option == "View User":
@@ -410,7 +420,7 @@ def devices_page():
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
-    tab_view, tab_add, tab_add_bulk, tab_delete,tab_delete_all, tab_update = st.tabs(["📱 Existing Device ", "➕ Add Device ", "📦➕ Add Bulk Device.csv",  " 🗑️ Delete ", " 📦🗑️ Delete All ", " ✏️ Update "])
+    tab_view, tab_add, tab_add_bulk, tab_delete,tab_delete_all, tab_update = st.tabs(["📱Existing Device  ", " ➕Add Device  ", " 📦➕Add Bulk Device.csv   ",  " 🗑️Delete  ", " 📦🗑️Delete All   ", "  ✏️Update  "])
     with tab_view:
                 
         st.subheader("📱 Existing Devices")
