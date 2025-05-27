@@ -6,6 +6,10 @@ import io
 from io import StringIO
 from datetime import datetime
 import time
+import uuid
+from PIL import Image
+import os
+import base64
 
 # Initialize Firebase
 if not firebase_admin._apps:
@@ -161,32 +165,79 @@ def users_page():
     # Add User
     if user_option == "Add User":
         st.subheader("Add New User")
+        image_file = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
         with st.form("add_user_form"):
-            name = st.text_input("Name").strip().upper()
-            user_type = st.selectbox("Type", ["Admin", "Back Office", "Standard", "Guest"])
-            password = st.text_input("Password", type="password")
+            #image_file = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
+            col1, col2 = st.columns([1,3],gap="small",border=True)
+            with col1:
+                # Image preview
+                if image_file:
+                    st.write("Image Uploaded:")
+                    try:
+                        image = Image.open(image_file)
+                        
+                        st.image(image, caption="Image Preview", width=150)                    
+                    except Exception as e:
+                        st.error(f"Error opening image: {e}")
+                else:
+                    st.write("Image not uploaded")    
+            with col2:
+                name = st.text_input("Name").strip().upper()
+                user_type = st.selectbox("Type", ["Admin", "Back Office", "Standard", "Guest"])
+                password = st.text_input("Password", type="password")
+
+            with st.expander("Add additional user details"):
+                col3, col4 = st.columns(2,gap="small",border=True)
+                with col3:
+                    doj_in=st.date_input("Date of Joining")
+                    doj = doj_in.strftime("%d-%m-%Y")
+                    dob_in=st.date_input("Date of Birth")
+                    dob = dob_in.strftime("%d-%m-%Y")
+                    status=st.selectbox("Status", ["Active", "Inactive"])
+                    contact=st.text_input("Contact").strip().upper()
+                    work_area=st.text_input("Work Area").strip().upper()
+                    work_profile=st.text_input("Work Profile").strip().upper()
+                    Brand=st.text_input("Brand").strip().upper()
+                with col4:
+                    fname=st.text_input("Father's Name").strip().upper()
+                    address=st.text_area("Address").strip().upper()
+                    email=st.text_input("Email").strip().upper()
+                    doc_url=st.text_input("Document URL").strip()
+                    Closing_Date_in=st.date_input("Closing Date")
+                    Closing_Date=Closing_Date_in.strftime("%d-%m-%Y")
+
+
+            # Submit button
             submitted = st.form_submit_button("Submit")
-
-        if submitted:
-            users_ref = db.collection("users")
-            all_users = users_ref.stream()
             
-            # Check for duplicate user name
-            name_exists = False
-            max_id = 0
-            for doc in all_users:
-                data = doc.to_dict()
-                if data.get("name") == name:
-                    name_exists = True
-                if isinstance(data.get("id"), int):
-                    max_id = max(max_id, data["id"])
+            if submitted:
+                users_ref = db.collection("users")
+                all_users = users_ref.stream()
+                
+                # Check for duplicate user name
+                name_exists = False
+                max_id = 0
+                for doc in all_users:
+                    data = doc.to_dict()
+                    if data.get("name") == name:
+                        name_exists = True
+                    if isinstance(data.get("id"), int):
+                        max_id = max(max_id, data["id"])
+                
+                image_b64 = ""
+                if image_file:
+                    img = Image.open(image_file)
+                    buffered = io.BytesIO()
+                    img.save(buffered, format="PNG")
+                    image_b64 = base64.b64encode(buffered.getvalue()).decode()
 
-            if name_exists:
-                st.error(f"⚠️ User name '{name}' already exists. Please choose another name.")
-            else:
-                new_id = max_id + 1
-                users_ref.add({"id": new_id, "name": name, "type": user_type, "pass": password})
-                st.success(f"✅ User '{name}' added with ID {new_id}.")
+
+                if name_exists:
+                    st.error(f"⚠️ User name '{name}' already exists. Please choose another name.")
+                else:
+                    new_id = max_id + 1
+                    users_ref.add({"id": new_id,"image_b64":image_b64, "name": name, "type": user_type, "pass": password, "doj":doj,"dob":dob,"status":status,"contact":contact,"work_area":work_area,"work_profile":work_profile,"Brand":Brand,"fname":fname,"address":address,"email":email,"doc_url":doc_url,"Closing_Date":Closing_Date})
+                    st.success(f"✅ User '{name}' added with ID {new_id}.")
 
     # View User
     elif user_option == "View User":
