@@ -162,6 +162,8 @@ def users_page():
         user_option = st.radio("Choose action", options, horizontal=True)
         st.divider()
 
+
+
     # Add User
     if user_option == "Add User":
         st.subheader("Add New User")
@@ -189,6 +191,7 @@ def users_page():
             with st.expander("Add additional user details"):
                 col3, col4 = st.columns(2,gap="small",border=True)
                 with col3:
+                    full_name=st.text_input("Full Name").strip().upper()
                     doj_in=st.date_input("Date of Joining")
                     doj = doj_in.strftime("%d-%m-%Y")
                     dob_in=st.date_input("Date of Birth")
@@ -236,24 +239,113 @@ def users_page():
                     st.error(f"⚠️ User name '{name}' already exists. Please choose another name.")
                 else:
                     new_id = max_id + 1
-                    users_ref.add({"id": new_id,"image_b64":image_b64, "name": name, "type": user_type, "pass": password, "doj":doj,"dob":dob,"status":status,"contact":contact,"work_area":work_area,"work_profile":work_profile,"Brand":Brand,"fname":fname,"address":address,"email":email,"doc_url":doc_url,"Closing_Date":Closing_Date})
+                    users_ref.add({"id": new_id,"image_b64":image_b64, "name": name, "type": user_type, "pass": password, "full_name":full_name, "doj":doj,"dob":dob,"status":status,"contact":contact,"work_area":work_area,"work_profile":work_profile,"Brand":Brand,"fname":fname,"address":address,"email":email,"doc_url":doc_url,"Closing_Date":Closing_Date})
                     st.success(f"✅ User '{name}' added with ID {new_id}.")
 
     # View User
     elif user_option == "View User":
-        st.subheader("📋 List of Users")
-        try:
-            docs = db.collection("users").get()
-            user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
-            if user_data:
-                df = pd.DataFrame(user_data)
-                column_order = ["name", "pass", "type"]  # Rearrange as needed
-                ordered_columns = [col for col in column_order if col in df.columns] + [col for col in df.columns if col not in column_order and col != "doc_id"]
-                st.dataframe(df[ordered_columns])
+        st.subheader("📋 View Users Database ")
+        docs = db.collection("users").stream()
+        all_users = [doc.to_dict() for doc in docs]
+        brand_options = sorted(set(user.get("Brand", "N/A") for user in all_users if user.get("Brand")))
+        selected_brands = st.multiselect("Select Brands to filter", brand_options, default=brand_options)
+
+        # Create 3 tabs
+        tab1, tab2, tab3 = st.tabs(["🟢 Active Users", "🔴 Inactive Users", "❔ No Status Users"])
+
+        # Fetch all users once
+        docs = db.collection("users").stream()
+        all_users = [doc.to_dict() for doc in docs]
+
+        # Display helper function
+        def show_users(users_list):
+            for data in users_list:
+                with st.container():
+                    st.markdown(
+                        """
+                        <div style="border: 1px solid #2196F3; border-radius: 5px; padding: 1px; margin-bottom: 10px;">
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                    cols = st.columns([1, 3])
+                    with cols[0]:
+                        if data.get("image_b64"):
+                            img_bytes = base64.b64decode(data["image_b64"])
+                            st.image(img_bytes, width=80)
+                        else:
+                            st.write("❌ No Image")
+                        st.markdown(f"`{data.get('full_name', 'N/A')}`")
+                    with cols[1]:
+                        c1, c2=st.columns(2,gap="small",border=True)
+                        with c1:
+                            st.markdown(f"**👤 User Name:** {data.get('name', 'N/A')}")
+                            st.markdown(f"**🧑‍💻 Type:** {data.get('type', 'N/A')}")
+                            st.markdown(f"**📌 Status:** {data.get('status', '❌ Not Set')}")
+                            st.markdown(f"**💼 Brand:** {data.get('Brand', 'N/A')}")
+                        with c2:
+                            st.markdown(f"**📅 Date of Joining:** {data.get('doj', 'N/A')}")
+                            st.markdown(f"**📅 Date of Birth:** {data.get('dob', 'N/A')}")
+                            st.markdown(f"**📞 Contact:** {data.get('contact', 'N/A')}")
+
+                        with st.expander(" 📂 `View additional user details`"):
+                            c3, c4=st.columns(2,gap="small",border=True)
+                            with c3:
+                                st.markdown(f"**💼 Work Area:** {data.get('work_area', 'N/A')}")
+                                st.markdown(f"**💼 Work Profile:** {data.get('work_profile', 'N/A')}")
+                                st.markdown(f"**📧 Email:** {data.get('email', 'N/A')}")
+                                st.markdown(f"**📅 Closing Date:** {data.get('Closing_Date', 'N/A')}")
+                            with c4:
+                                st.markdown(f"**👤 Father Name:** {data.get('fname', 'N/A')}")
+                                st.markdown(f"**🏠 Address:** {data.get('address', 'N/A')}")
+                                
+                                
+                                #st.markdown(f"**📄 Document URL:** {data.get('doc_url', 'N/A')}")
+                                doc_url = data.get("doc_url")
+                                if doc_url:
+                                    st.link_button("📄 Open Document", doc_url)
+                                else:
+                                    st.write("❌ No Document URL")
+
+
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+        # 🟢 Active
+        with tab1:
+            active_users = [
+                u for u in all_users 
+                if u.get("status", "").lower() == "active" and u.get("Brand") in selected_brands
+                ]
+            if active_users:
+                st.write(f"🎯 {len(active_users)} `active user(s) matched with selected brands.`")
+                show_users(active_users)
             else:
-                st.info("No users found.")
-        except Exception as e:
-            st.error(f"Error fetching users: {e}")
+                st.info("No active users found.")
+
+        # 🔴 Inactive
+        with tab2:
+            inactive_users = [
+                u for u in all_users 
+                if u.get("status", "").lower() == "inactive" and u.get("Brand") in selected_brands
+            ]
+            if inactive_users:
+                st.write(f"🎯 {len(inactive_users)} `inactive user(s) matched with selected brands.`")
+                show_users(inactive_users)
+            else:
+                st.info("No inactive users found.")
+
+        # ❔ No Status
+        with tab3:
+            no_status_users = [
+                u for u in all_users 
+                if not u.get("status") or not u.get("Brand")
+            ]
+            if no_status_users:
+                st.write(f"🎯 {len(no_status_users)} ` user(s) found without STATUS or BRAND selected.`")
+                show_users(no_status_users)
+            else:
+                st.info("All users have status set.")
+
 
     # Delete User (Admin only)
     elif user_option == "Delete User":
@@ -272,23 +364,95 @@ def users_page():
     # Update User (Admin only)
     elif user_option == "Update User":
         st.subheader("✏️ Update User")
-        docs = db.collection("users").get()
-        usernames = [doc.to_dict().get("name") for doc in docs]
-        to_update = st.selectbox("Select user to update", usernames)
-        new_type = st.selectbox("New Type", ["Admin", "Standard", "Guest"])
-        new_pass = st.text_input("New Password", type="password")
-        if st.button("Update"):
-            for doc in docs:
-                if doc.to_dict().get("name") == to_update:
-                    update_data = {}
-                    if new_type:
-                        update_data["type"] = new_type
-                    if new_pass:
-                        update_data["pass"] = new_pass
-                    db.collection("users").document(doc.id).update(update_data)
-                    st.success(f"Updated user {to_update}.")
-                    break
+        
+        users_ref = db.collection("users")
+        docs = users_ref.stream()
+        user_list = []
+        user_dict = {}
+        for doc in docs:
+            data = doc.to_dict()
+            name = data.get("name", "")
+            user_list.append(name)
+            user_dict[name] = {"doc_id": doc.id, "data": data}
 
+        selected_user = st.selectbox("Select User to Update", user_list)
+
+        if selected_user:
+            user_data = user_dict[selected_user]["data"]
+            doc_id = user_dict[selected_user]["doc_id"]
+
+            image_file = st.file_uploader("Upload New Image (optional)", type=["png", "jpg", "jpeg"])
+
+            with st.form("update_user_form"):
+                col1, col2 = st.columns([1, 3], gap="small", border=True)
+                with col1:
+                    if image_file:
+                        st.write("New Image Uploaded:")
+                        try:
+                            image = Image.open(image_file)
+                            st.image(image, caption="Preview", width=150)
+                        except Exception as e:
+                            st.error(f"Error opening image: {e}")
+                    elif user_data.get("image_b64"):
+                        st.image(base64.b64decode(user_data["image_b64"]), width=150)
+                    else:
+                        st.write("❌ No image available")
+
+                with col2:
+                    name = st.text_input("Name", value=user_data.get("name", "")).strip().upper()
+                    user_type = st.selectbox("Type", ["Admin", "Back Office", "Standard", "Guest"], index=["Admin", "Back Office", "Standard", "Guest"].index(user_data.get("type", "Standard")))
+                    password = st.text_input("Password", value=user_data.get("pass", ""), type="password")
+
+                with st.expander("Update additional user details"):
+                    col3, col4 = st.columns(2, gap="small", border=True)
+                    with col3:
+                        full_name = st.text_input("Full Name", value=user_data.get("full_name", "")).strip().upper()
+                        doj_in = st.date_input("Date of Joining", datetime.datetime.strptime(user_data.get("doj", "01-01-2000"), "%d-%m-%Y"))
+                        dob_in = st.date_input("Date of Birth", datetime.datetime.strptime(user_data.get("dob", "01-01-2000"), "%d-%m-%Y"))
+                        status = st.selectbox("Status", ["Active", "Inactive"], index=["Active", "Inactive"].index(user_data.get("status", "Active")))
+                        contact = st.text_input("Contact", value=user_data.get("contact", "")).strip().upper()
+                        work_area = st.text_input("Work Area", value=user_data.get("work_area", "")).strip().upper()
+                        work_profile = st.text_input("Work Profile", value=user_data.get("work_profile", "")).strip().upper()
+                        Brand = st.text_input("Brand", value=user_data.get("Brand", "")).strip().upper()
+                    with col4:
+                        fname = st.text_input("Father's Name", value=user_data.get("fname", "")).strip().upper()
+                        address = st.text_area("Address", value=user_data.get("address", "")).strip().upper()
+                        email = st.text_input("Email", value=user_data.get("email", "")).strip().upper()
+                        doc_url = st.text_input("Document URL", value=user_data.get("doc_url", "")).strip()
+                        Closing_Date_in = st.date_input("Closing Date", datetime.datetime.strptime(user_data.get("Closing_Date", "01-01-2099"), "%d-%m-%Y"))
+
+                # Submit button
+                submitted = st.form_submit_button("Update User")
+                if submitted:
+                    image_b64 = user_data.get("image_b64", "")
+                    if image_file:
+                        img = Image.open(image_file)
+                        buffered = io.BytesIO()
+                        img.save(buffered, format="PNG")
+                        image_b64 = base64.b64encode(buffered.getvalue()).decode()
+
+                    updated_data = {
+                        "name": name,
+                        "type": user_type,
+                        "pass": password,
+                        "image_b64": image_b64,
+                        "full_name": full_name,
+                        "doj": doj_in.strftime("%d-%m-%Y"),
+                        "dob": dob_in.strftime("%d-%m-%Y"),
+                        "status": status,
+                        "contact": contact,
+                        "work_area": work_area,
+                        "work_profile": work_profile,
+                        "Brand": Brand,
+                        "fname": fname,
+                        "address": address,
+                        "email": email,
+                        "doc_url": doc_url,
+                        "Closing_Date": Closing_Date_in.strftime("%d-%m-%Y")
+                    }
+
+                    users_ref.document(doc_id).update(updated_data)
+                    st.success(f"✅ User '{name}' updated successfully.")
 # -----------------------------------------Distributors placeholder
 
 def distributors_page():

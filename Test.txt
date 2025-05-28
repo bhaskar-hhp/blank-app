@@ -106,3 +106,16 @@ while login by standard or Guest type user, show only those order which are crea
 
  Delete User > Select user ID to be make selectbox
 test
+
+
+                    
+                    work_area=st.text_input("Work Area").strip().upper()
+                    work_profile=st.text_input("Work Profile").strip().upper()
+                    Brand=st.text_input("Brand").strip().upper()
+                with col4:
+                    fname=st.text_input("Father's Name").strip().upper()
+                    address=st.text_area("Address").strip().upper()
+                    email=st.text_input("Email").strip().upper()
+                    doc_url=st.text_input("Document URL").strip()
+                    Closing_Date_in=st.date_input("Closing Date")
+                    Closing_Date=Closing_Date_in.strftime("%d-%m-%Y")
