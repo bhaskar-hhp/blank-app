@@ -30,6 +30,7 @@ def login():
     
     #st.title("🔐 Login")
     with st.form("login_form"):
+        
         username = st.text_input("Username").strip().upper()
         password = st.text_input("Password", type="password")
         submitted = st.form_submit_button("Login")
