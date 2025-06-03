@@ -408,8 +408,8 @@ def users_page():
                     col3, col4 = st.columns(2, gap="small", border=True)
                     with col3:
                         full_name = st.text_input("Full Name", value=user_data.get("full_name", "")).strip().upper()
-                        doj_in = st.date_input("Date of Joining", datetime.datetime.strptime(user_data.get("doj", "01-01-2000"), "%d-%m-%Y"))
-                        dob_in = st.date_input("Date of Birth", datetime.datetime.strptime(user_data.get("dob", "01-01-2000"), "%d-%m-%Y"))
+                        #doj_in = st.date_input("Date of Joining", datetime.datetime.strptime(user_data.get("doj", "01-01-2000"), "%d-%m-%Y"))
+                        #dob_in = st.date_input("Date of Birth", datetime.datetime.strptime(user_data.get("dob", "01-01-2000"), "%d-%m-%Y"))
                         status = st.selectbox("Status", ["Active", "Inactive"], index=["Active", "Inactive"].index(user_data.get("status", "Active")))
                         contact = st.text_input("Contact", value=user_data.get("contact", "")).strip().upper()
                         work_area = st.text_input("Work Area", value=user_data.get("work_area", "")).strip().upper()
@@ -421,7 +421,6 @@ def users_page():
                         email = st.text_input("Email", value=user_data.get("email", "")).strip().upper()
                         doc_url = st.text_input("Document URL", value=user_data.get("doc_url", "")).strip()
                         Closing_Date_in = st.date_input("Closing Date", datetime.datetime.strptime(user_data.get("Closing_Date", "01-01-2099"), "%d-%m-%Y"))
-
                 # Submit button
                 submitted = st.form_submit_button("Update User")
                 if submitted:
@@ -454,6 +453,7 @@ def users_page():
 
                     users_ref.document(doc_id).update(updated_data)
                     st.success(f"✅ User '{name}' updated successfully.")
+                    
 # -----------------------------------------Distributors placeholder
 
 def distributors_page():
