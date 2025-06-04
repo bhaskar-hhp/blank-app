@@ -117,6 +117,11 @@ def show_sidebar():
             if st.button("🕒 Attendance Managment"):
                 st.session_state.selected_page = "Attendance Managment"
 
+        # Guest Only --------------------------------------------------------------------------------------
+        if user_role in ["Guest"]:
+            if st.button("📝 Ledger"):
+                st.session_state.selected_page = "Ledger"
+     
         # --------------------------------------------------------------------------------------------------
 
 
