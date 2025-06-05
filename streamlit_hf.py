@@ -518,7 +518,7 @@ def distributors_page():
         if records:   
             # Specify the desired column order
             df = pd.DataFrame(records)
-            column_order = ["name", "location","address", "contact", "email"]  # Rearrange as needed
+            column_order = ["name", "location","address", "contact", "email", "company"]  # Rearrange as needed
             ordered_columns = [col for col in column_order if col in df.columns] + [col for col in df.columns if col not in column_order and col != "id"]
             st.dataframe(df[ordered_columns])
         else:
@@ -543,18 +543,23 @@ def distributors_page():
         address = st.text_area("Address (multiline)")
         contact = st.text_input("Contact")
         email = st.text_input("Email")
+        company = st.selectbox("Company", ["SWIFTCOM", "SHREE AGENCY"])
+
+
+        st.divider()
+
         if st.button("Add"):
             if name:
-                add_distributor({"name": name, "location": location,"address": address, "contact": contact, "email": email})
+                add_distributor({"name": name, "location": location,"address": address, "contact": contact, "email": email, "company": company})
                 st.success("Distributor added.")
             else:
                 st.warning("Name is required.")
 
     elif option == "Bulk Add":
         st.subheader("Bulk Add Distributors (CSV)")
-        st.markdown("CSV columns: name, location, address, contact, email")
+        st.markdown("CSV columns: name, location, address, contact, email, company")
         # Download CSV template
-        template_df = pd.DataFrame(columns=["name", "location", "address", "contact", "email"])
+        template_df = pd.DataFrame(columns=["name", "location", "address", "contact", "email", "company"])
         csv = template_df.to_csv(index=False).encode("utf-8")
         st.download_button("📥 Download CSV Template", csv, "distributor_template.csv", "text/csv")
 
@@ -562,12 +567,12 @@ def distributors_page():
         file = st.file_uploader("Upload CSV", type="csv")
         if file:
             df = pd.read_csv(file)
-            if all(col in df.columns for col in ["name", "location", "address", "contact", "email"]):
+            if all(col in df.columns for col in ["name", "location", "address", "contact", "email", "company"]):
                 for _, row in df.iterrows():
                     add_distributor(row.to_dict())
                 st.success("Bulk upload complete.")
             else:
-                st.error("CSV must have columns: name, location, address, contact, email")
+                st.error("CSV must have columns: name, location, address, contact, email, company")
 
     elif option == "Update":
         st.subheader("Update Distributor")
@@ -583,8 +588,17 @@ def distributors_page():
             address = st.text_area("Address", selected_data["address"])
             contact = st.text_input("Contact", selected_data["contact"])
             email = st.text_input("Email", selected_data["email"])
+            
+            options = ["SWIFTCOM", "SHREE AGENCY"]
+            selected_value = selected_data["company"]
+            # Find index of selected_value in options list
+            index = options.index(selected_value) if selected_value in options else 0
+            # Show selectbox with selected value
+            company = st.selectbox("Company", options, index=index)
+
+            st.divider()
             if st.button("Update"):
-                update_distributor(doc_id, {"name": name, "location": location,"address": address, "contact": contact, "email": email})
+                update_distributor(doc_id, {"name": name, "location": location,"address": address, "contact": contact, "email": email, "company": company})
                 st.success("Distributor updated.")
         else:
             st.info("No distributors available.")
