@@ -89,8 +89,13 @@ def show_sidebar():
         if st.button("🏠 Home"):
             st.session_state.selected_page = "Home"
 
-        if st.button("🕒 Attendance"):
-            st.session_state.selected_page = "Attendance"
+
+        # Admin , "Standard", "Back Office": -----------------------------------------------------------------------------
+        if user_role in ["Admin", "Standard", "Back Office"]:
+            if st.button("🕒 Attendance"):
+                st.session_state.selected_page = "Attendance"
+
+
 
         # Admin , "Standard", "Guest": -----------------------------------------------------------------------------
         if user_role in ["Admin", "Standard", "Guest"]:
@@ -104,6 +109,8 @@ def show_sidebar():
             if st.button("📱 Devices"):
                 st.session_state.selected_page = "Devices"
             if st.button("📊 Distributors"):
+                st.session_state.selected_page = "Distributors"
+            if st.button("📊 Distributors Ledgers"):
                 st.session_state.selected_page = "Distributors"
             if st.button("🚚 Logistics"):
                 st.session_state.selected_page = "Logistics"
@@ -121,6 +128,13 @@ def show_sidebar():
         if user_role in ["Guest"]:
             if st.button("📝 Ledger"):
                 st.session_state.selected_page = "Ledger"
+     
+        # --------------------------------------------------------------------------------------------------
+
+        # Standard Only --------------------------------------------------------------------------------------
+        if user_role in ["Standard"]:
+            if st.button("📝 Ledgers"):
+                st.session_state.selected_page = "Ledgers"
      
         # --------------------------------------------------------------------------------------------------
 
@@ -255,6 +269,7 @@ def users_page():
         all_users = [doc.to_dict() for doc in docs]
         brand_options = sorted(set(user.get("Brand", "N/A") for user in all_users if user.get("Brand")))
         selected_brands = st.multiselect("Select Brands to filter", brand_options, default=brand_options)
+        selected_type=st.selectbox("Select Type to filter",["Admin", "Back Office", "Standard", "Guest"])
 
         # Create 3 tabs
         tab1, tab2, tab3 = st.tabs(["🟢 Active Users", "🔴 Inactive Users", "❔ No Status Users"])
@@ -320,7 +335,7 @@ def users_page():
         with tab1:
             active_users = [
                 u for u in all_users 
-                if u.get("status", "").lower() == "active" and u.get("Brand") in selected_brands
+                if u.get("status", "").lower() == "active" and u.get("Brand") in selected_brands and u.get("type") == selected_type
                 ]
             if active_users:
                 st.write(f"🎯 {len(active_users)} `active user(s) matched with selected brands.`")
@@ -332,7 +347,7 @@ def users_page():
         with tab2:
             inactive_users = [
                 u for u in all_users 
-                if u.get("status", "").lower() == "inactive" and u.get("Brand") in selected_brands
+                if u.get("status", "").lower() == "inactive" and u.get("Brand") in selected_brands and u.get("type") == selected_type
             ]
             if inactive_users:
                 st.write(f"🎯 {len(inactive_users)} `inactive user(s) matched with selected brands.`")
