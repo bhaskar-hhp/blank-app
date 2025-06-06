@@ -539,7 +539,7 @@ def distributors_page():
             location = loc
 
         st.divider()
-        name = st.text_input("Name").strip().upper()
+        name = st.text_input("Name")
         address = st.text_area("Address (multiline)")
         contact = st.text_input("Contact")
         email = st.text_input("Email")
@@ -583,7 +583,7 @@ def distributors_page():
             selected_data = df[df["name"] == selected].iloc[0]
             st.divider()
             doc_id = selected_data["id"]
-            name = st.text_input("Name", selected_data["name"]).strip().upper()
+            name = st.text_input("Name", selected_data["name"])
             location = st.text_input("Location", selected_data["location"]).strip().upper()
             address = st.text_area("Address", selected_data["address"])
             contact = st.text_input("Contact", selected_data["contact"])

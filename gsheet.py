@@ -25,7 +25,7 @@ if 'LedgerName' in df.columns:
     ledger_options = df['LedgerName'].unique()
 
     # Selectbox for ledger selection
-    selected_ledger = st.selectbox("Choose a Ledger", sorted(ledger_options))
+    selected_ledger = st.selectbox("Choose a Ledger", sorted(ledger_options).strip().upper())
 
     # Filter and display ledger data
     filtered_df = df[df['LedgerName'] == selected_ledger].drop(columns=['LedgerName'])
