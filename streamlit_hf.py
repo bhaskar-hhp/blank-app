@@ -111,7 +111,7 @@ def show_sidebar():
             if st.button("📊 Distributors"):
                 st.session_state.selected_page = "Distributors"
             if st.button("📊 Distributors Ledgers"):
-                st.session_state.selected_page = "Distributors"
+                st.session_state.selected_page = "Distributors Ledgers"
             if st.button("🚚 Logistics"):
                 st.session_state.selected_page = "Logistics"
 
@@ -615,6 +615,30 @@ def distributors_page():
                 st.success("Distributor deleted.")
         else:
             st.info("No distributors to delete.")
+
+
+# ---------------------------------------------------------------Distributors Ledgers Page----------------------
+def distributors_ledgers_page():
+
+    if st.session_state.get("user_role") not in ["Admin", "Back Office"]:
+        st.error("Access denied.")
+        return
+        #---------------------- individual page title------------------
+    st.markdown(
+        """
+        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+            📊 Distributor Management
+        </h5>
+        """,
+        unsafe_allow_html=True
+    )
+    #--------------------------------------------------------------------
+
+    st.header("📊 Distributors Ledgers")
+
+
+
+
 
 # ---------------------------------------------------------------Order Page----------------------
 def order_page():
@@ -1139,6 +1163,9 @@ def main():
         att_managment_page()
     elif page == "Devices":
         devices_page()
+    elif page == "Distributors Ledgers":
+        distributors_ledgers_page()
+
 
 
 
