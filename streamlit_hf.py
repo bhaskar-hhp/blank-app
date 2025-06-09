@@ -4,12 +4,13 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import io
 from io import StringIO
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import uuid
 from PIL import Image
 import os
 import base64
+
 
 # Initialize Firebase
 if not firebase_admin._apps:
@@ -110,7 +111,7 @@ def show_sidebar():
                 st.session_state.selected_page = "Devices"
             if st.button("📊 Distributors"):
                 st.session_state.selected_page = "Distributors"
-            if st.button("📊 Distributors Ledgers"):
+            if st.button("📒 Distributors Ledgers"):
                 st.session_state.selected_page = "Distributors Ledgers"
             if st.button("🚚 Logistics"):
                 st.session_state.selected_page = "Logistics"
@@ -624,17 +625,234 @@ def distributors_ledgers_page():
         st.error("Access denied.")
         return
         #---------------------- individual page title------------------
+   
+    #st.header("📊 Distributors Ledgers")
+
+    # --- Fetch ledger entries ---
+    docs = db.collection("Dist").stream()
+    ledger_data = [doc.to_dict() for doc in docs]
+    df_ledger = pd.DataFrame(ledger_data)
+
+    
+
+    #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
-            📊 Distributor Management
-        </h5>
+            <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white; text-align: center'>
+            📒 Distributors Ledger Viewer
+            </h5>
         """,
         unsafe_allow_html=True
     )
-    #--------------------------------------------------------------------
 
-    st.header("📊 Distributors Ledgers")
+    #st.divider()
+    #----------------------------------------------------------------
+    
+
+
+    # Google Drive file IDs
+    file_id = '1Qt_dcHn8YNeVL6s7m7647YssIoukdNoB'
+    bal_file_id = '1F39ERDJAiRTOYnNTnThtF-sIl_-zX3j5'
+
+    # Construct direct download URLs
+    csv_url = f'https://drive.google.com/uc?id={file_id}'
+    bal_csv_url = f'https://drive.google.com/uc?id={bal_file_id}'
+
+    # Load CSVs
+    df = pd.read_csv(csv_url)
+    bal_df = pd.read_csv(bal_csv_url)
+
+    tab1, tab2, tab3=st.tabs(["💰 Ledger Balance", "📖 Daybook", "📘 Ledger & Voucher"])
+
+    with tab1:
+        st.info("Tab Selected : 💰 Ledger Balance")
+        st.write("🔍 Select ")
+
+        colb, colc = st.columns(2)
+        with colb:
+            # --- UI Filters: Company ---
+            company_list = sorted(df_ledger["company"].dropna().unique())
+            selected_companies = st.multiselect("Select Company(s)", company_list)
+
+            # Filter dataframe by selected companies
+            if selected_companies:
+                filtered_by_company = df_ledger[df_ledger["company"].isin(selected_companies)]
+            else:
+                filtered_by_company = df_ledger.copy()
+        with colc:
+            # --- Filter by selected company, then Brand ---
+            brand_list = sorted(filtered_by_company["brand"].dropna().unique())
+            selected_brands = st.multiselect("Select Brand(s)", brand_list)
+
+            # Further filter by selected brands
+            if selected_brands:
+                filtered_by_brand = filtered_by_company[filtered_by_company["brand"].isin(selected_brands)]
+            else:
+                filtered_by_brand = filtered_by_company.copy()
+
+        # --- Filter by Brand ---
+
+        location_list = sorted(filtered_by_brand["location"].dropna().unique())
+        selected_locations = st.multiselect("Select Location(s)", location_list)
+
+        if selected_locations:
+            filtered_ledgers = filtered_by_brand[filtered_by_brand["location"].isin(selected_locations)]
+            final_ledgers = filtered_ledgers["name"].tolist()
+        else:
+            final_ledgers = []
+
+        st.divider()
+    
+        # --- Load balance CSV from Google Drive ---
+        csv_url = "https://drive.google.com/uc?id=1F39ERDJAiRTOYnNTnThtF-sIl_-zX3j5"
+        df_bal = pd.read_csv(csv_url)
+
+        # --- Filter matching ledgers ---
+        df_bal_filtered = df_bal[df_bal["Ledger Name"].isin(final_ledgers)]
+
+        # --- Clean Closing Balance ---
+        df_bal_filtered["Closing Balance"] = df_bal_filtered["Closing Balance"].astype(str)
+
+        def parse_balance(val):
+            val = val.replace("Cr", "").replace("Dr", "").replace(",", "").strip()
+            try:
+                return float(val)
+            except:
+                return 0.0
+
+        df_bal_filtered["BalanceValue"] = df_bal_filtered["Closing Balance"].apply(parse_balance)
+
+        # --- Split into Dr and Cr based on sign ---
+        df_dr = df_bal_filtered[df_bal_filtered["BalanceValue"] < 0][["Ledger Name", "Closing Balance"]].reset_index(drop=True)
+        df_cr = df_bal_filtered[df_bal_filtered["BalanceValue"] >= 0][["Ledger Name", "Closing Balance"]].reset_index(drop=True)
+
+        # --- Totals ---
+        total_cr = df_bal_filtered[df_bal_filtered["BalanceValue"] >= 0]["BalanceValue"].sum()
+        total_dr = df_bal_filtered[df_bal_filtered["BalanceValue"] < 0]["BalanceValue"].sum()
+
+        # --- Display in two columns ---
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("### 💚 Cr. Balance")
+            st.dataframe(df_cr)
+            st.success(f"**Total Cr: ₹ {total_cr:,.2f}**")
+
+        with col2:
+            st.markdown("### 🔴 Dr. Balance (Oustanding)")
+            st.dataframe(df_dr)
+            st.error(f"**Total Dr: ₹ {abs(total_dr):,.2f}**")
+
+    with tab2:
+        st.info("Tab Selected : 📖 Daybook")
+
+        required_columns = {'Date', 'LedgerName', 'Ledger', 'Type', 'VoucherNo', 'DrAmt', 'CrAmt'}
+        if required_columns.issubset(df.columns):
+            # Convert 'Date' to datetime
+            df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+
+            # Ledger Type filter (from 'Type' column)
+            type_options = sorted(df['Type'].dropna().unique())
+            selected_types = st.multiselect("📌 Select Ledger Type(s)", type_options, default=type_options)
+
+            # Date range
+            today = datetime.today()
+            default_from = today - timedelta(days=1)
+            default_to = today
+
+            col1, col2 = st.columns(2)
+            with col1:
+                from_date = st.date_input("🗓️ From Date", default_from)
+            with col2:
+                to_date = st.date_input("🗓️ To Date", default_to)
+
+            st.markdown(f"🗓️ Showing entries from **{from_date.strftime('%d-%m-%y')}** to **{to_date.strftime('%d-%m-%y')}**")
+
+            # Filter data
+            filtered_df = df[
+                (df['Date'] >= pd.to_datetime(from_date)) &
+                (df['Date'] <= pd.to_datetime(to_date)) &
+                (df['Type'].isin(selected_types))
+            ]
+
+            if not filtered_df.empty:
+                # Format date
+                filtered_df['Date'] = filtered_df['Date'].dt.strftime('%d-%m-%y')
+
+                # Reorder columns
+                display_cols = ['Date', 'LedgerName', 'Ledger', 'Type', 'VoucherNo', 'DrAmt', 'CrAmt']
+                filtered_df = filtered_df[display_cols]
+
+                # Show table
+                st.subheader("📄 Daybook Entries")
+                st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+
+                # Totals
+                total_dr = filtered_df['DrAmt'].sum()
+                total_cr = filtered_df['CrAmt'].sum()
+                st.success(f"**Total Dr: ₹ {total_dr:,.2f} | Total Cr: ₹ {total_cr:,.2f}**")
+            else:
+                st.warning("⚠️ No matching entries found.")
+        else:
+            st.error("❌ Required columns not found. Expected: Date, LedgerName, Ledger, Type, VoucherNo, DrAmt, CrAmt")
+
+    with tab3:
+        st.info("Tab Selected : 📘 Ledger & Voucher")
+        # UI block for ledger selection
+
+        if 'LedgerName' in df.columns and 'Date' in df.columns:
+            # Convert 'Date' column to datetime if not already
+            df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+
+            # Get unique ledger names
+            ledger_options = df['LedgerName'].dropna().unique()
+            selected_ledger = st.selectbox("🔍 Select Ledger", sorted(ledger_options))
+
+            # Default date range: last 2 months
+            today = datetime.today()
+            default_from_date = today - timedelta(days=60)
+            default_to_date = today
+
+            # Date inputs (shown to user)
+            col1, col2=st.columns(2)
+            with col1:
+                from_date = st.date_input("🗓️From Date", default_from_date)
+            with col2:
+                to_date = st.date_input("🗓️To Date", default_to_date)
+            st.markdown(f"🗓️ Showing ledger from **{from_date.strftime('%d-%m-%y')}** to **{to_date.strftime('%d-%m-%y')}**")
+            st.divider()
+
+            # Filter dataframe
+            filtered_df = df[
+                (df['LedgerName'] == selected_ledger) &
+                (df['Date'] >= pd.to_datetime(from_date)) &
+                (df['Date'] <= pd.to_datetime(to_date))
+            ].drop(columns=['LedgerName'])
+
+            # 👉 Format 'Date' for display as dd-mm-yy
+            if 'Date' in filtered_df.columns:
+                filtered_df['Date'] = filtered_df['Date'].dt.strftime('%d-%m-%y')
+
+            st.subheader("📑 Ledger Details")
+            st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+
+        else:
+            st.error("❌ 'LedgerName' or 'Date' column not found in the main ledger data.")
+
+        # Show closing balance
+        if 'Ledger Name' in bal_df.columns:
+            filtered_bal_df = bal_df[bal_df['Ledger Name'] == selected_ledger]
+            if not filtered_bal_df.empty:
+                closing_balance = filtered_bal_df['Closing Balance'].values[0]
+                st.markdown(f"💰 **Closing Balance**")
+                if closing_balance < 0:
+                    st.error(f"Closing Balance for **{selected_ledger}** is:   ₹ {closing_balance:,.2f} Dr.")
+                else:
+                    st.success(f"Closing Balance for **{selected_ledger}** is:   ₹ {closing_balance:,.2f} Cr.")
+            else:
+                st.warning("No balance information found for the selected ledger.")
+        else:
+            st.error("❌ 'Ledger Name' column not found in the balance data.")
 
 
 
