@@ -205,7 +205,7 @@ def users_page():
                 else:
                     st.write("Image not uploaded")    
             with col2:
-                name = st.text_input("Name").strip().upper()
+                name = st.text_input("User Name").strip().upper()
                 user_type = st.selectbox("Type", ["Admin", "Back Office", "Standard", "Guest"])
                 password = st.text_input("Password", type="password")
 
@@ -421,7 +421,7 @@ def users_page():
                         st.write("❌ No image available")
 
                 with col2:
-                    name = st.text_input("Name", value=user_data.get("name", "")).strip().upper()
+                    name = st.text_input("User Name", value=user_data.get("name", "")).strip().upper()
                     user_type = st.selectbox("Type", ["Admin", "Back Office", "Standard", "Guest"], index=["Admin", "Back Office", "Standard", "Guest"].index(user_data.get("type", "Standard")))
                     password = st.text_input("Password", value=user_data.get("pass", ""), type="password")
 
@@ -429,8 +429,9 @@ def users_page():
                     col3, col4 = st.columns(2, gap="small", border=True)
                     with col3:
                         full_name = st.text_input("Full Name", value=user_data.get("full_name", "")).strip().upper()
-                        #doj_in = st.date_input("Date of Joining", datetime.datetime.strptime(user_data.get("doj", "01-01-2000"), "%d-%m-%Y"))
-                        #dob_in = st.date_input("Date of Birth", datetime.datetime.strptime(user_data.get("dob", "01-01-2000"), "%d-%m-%Y"))
+                        
+                        doj_in=st.text_input("Date of Joining", value=user_data.get("doj"))
+                        dob_in=st.text_input("Date of Birth", value=user_data.get("dob"))
                         status = st.selectbox("Status", ["Active", "Inactive"], index=["Active", "Inactive"].index(user_data.get("status", "Active")))
                         contact = st.text_input("Contact", value=user_data.get("contact", "")).strip().upper()
                         work_area = st.text_input("Work Area", value=user_data.get("work_area", "")).strip().upper()
@@ -441,7 +442,7 @@ def users_page():
                         address = st.text_area("Address", value=user_data.get("address", "")).strip().upper()
                         email = st.text_input("Email", value=user_data.get("email", "")).strip().upper()
                         doc_url = st.text_input("Document URL", value=user_data.get("doc_url", "")).strip()
-                        Closing_Date_in = st.date_input("Closing Date", datetime.datetime.strptime(user_data.get("Closing_Date", "01-01-2099"), "%d-%m-%Y"))
+                        Closing_Date_in = st.text_input("Closing Date", value=user_data.get("Closing_Date"))
                 # Submit button
                 submitted = st.form_submit_button("Update User")
                 if submitted:
@@ -458,8 +459,8 @@ def users_page():
                         "pass": password,
                         "image_b64": image_b64,
                         "full_name": full_name,
-                        "doj": doj_in.strftime("%d-%m-%Y"),
-                        "dob": dob_in.strftime("%d-%m-%Y"),
+                        "doj": doj_in,
+                        "dob": dob_in,
                         "status": status,
                         "contact": contact,
                         "work_area": work_area,
@@ -469,12 +470,12 @@ def users_page():
                         "address": address,
                         "email": email,
                         "doc_url": doc_url,
-                        "Closing_Date": Closing_Date_in.strftime("%d-%m-%Y")
+                        "Closing_Date": Closing_Date_in
                     }
 
                     users_ref.document(doc_id).update(updated_data)
                     st.success(f"✅ User '{name}' updated successfully.")
-                    
+                
 # -----------------------------------------Distributors placeholder
 
 def distributors_page():
