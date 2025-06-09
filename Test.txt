@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 test at Server Office 01:26 PM
 SERVER PC Clone Path : cd F:\BHASKAR\MY DOCUMENT\OneDrive\Temp\VSCode\GITHUB>
 
@@ -34,6 +35,8 @@ selected_data = df[df["name"] == selected].iloc[0]
 
 
 
+=======
+>>>>>>> 28b2e84 (update)
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,7 +53,10 @@ CREATE TABLE IF NOT EXISTS models (
     model TEXT,
     color TEXT,
     specs TEXT
+<<<<<<< HEAD
     type TEXT
+=======
+>>>>>>> 28b2e84 (update)
 )
 """)
 
@@ -109,6 +115,7 @@ DROP TABLE IF EXISTS dist;
 
 while login by standard or Guest type user, show only those order which are created by user.
 
+<<<<<<< HEAD
  Delete User > Select user ID to be make selectbox
 test
 
@@ -124,3 +131,6 @@ test
                     doc_url=st.text_input("Document URL").strip()
                     Closing_Date_in=st.date_input("Closing Date")
                     Closing_Date=Closing_Date_in.strftime("%d-%m-%Y")
+=======
+ Delete User > Select user ID to be make selectbox
+>>>>>>> 28b2e84 (update)

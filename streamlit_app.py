@@ -483,6 +483,7 @@ if st.session_state.logged_in:
             """, (date, time, selected_dist, selected_location, selected_model, selected_color, selected_specs, quantity, status, remark, added_by, update_by))
             conn.commit()
             st.success("✅ Order created successfully!")
+<<<<<<< HEAD
             st.toast("Saved successfully! ✅")
             #st.snow()  
             st.balloons()   
@@ -544,6 +545,48 @@ if st.session_state.logged_in:
             # 🔽 Download full dataset (all columns)
             csv_data = df_filtered.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download All Order Details (CSV)", data=csv_data, file_name="orders_full.csv", mime="text/csv")
+=======
+            #st.toast("Saved successfully! ✅")
+            #st.snow()  
+            st.balloons()   
+    # Update Order    
+    elif st.session_state.page == "Update Order":
+    
+        st.header("🛠️ Update Order")
+
+        # Step 1: Select Status
+        status_options = ["New", "Processing", "Biling Done", "Dispatched", "Delivered", "Cancelled"]
+        selected_status = st.select_slider("Select Order Status Category", status_options)
+
+        # Step 2: Fetch orders with selected status
+        cursor.execute("SELECT id, dist, model, status FROM po WHERE status = ?", (selected_status,))
+        orders = cursor.fetchall()
+
+        if not orders:
+            st.info(f"No orders with status '{selected_status}'.")
+        else:
+            # Step 3: Get unique distributors from filtered orders
+            distributors = sorted(set(o[1] for o in orders))
+            selected_dist = st.selectbox("Filter by Distributor", distributors)
+
+            # Step 4: Filter orders by selected distributor
+            filtered_orders = [o for o in orders if o[1] == selected_dist]
+
+            if not filtered_orders:
+                st.warning(f"No orders for distributor '{selected_dist}' under status '{selected_status}'.")
+            else:
+                # Step 5: Select specific order
+                options = [f"{o[0]} - {o[1]} - {o[2]} ({o[3]})" for o in filtered_orders]
+                selected_idx = st.selectbox("Select Order", range(len(options)), format_func=lambda i: options[i])
+                selected_id = filtered_orders[selected_idx][0]
+
+                # Step 6: Show current status & remark
+                cursor.execute("SELECT status, remark FROM po WHERE id = ?", (selected_id,))
+                current_status, current_remark = cursor.fetchone()
+
+                new_status = st.selectbox("Update Status", status_options, index=status_options.index(current_status))
+                new_remark = st.text_area("Update Remark", value=current_remark)
+>>>>>>> 28b2e84 (update)
 
             # Select and update order
             order_ids = df_filtered["id"].tolist()
@@ -565,6 +608,7 @@ if st.session_state.logged_in:
                         WHERE id = ?
                     """, (new_status, new_remark.strip(), st.session_state.username, selected_order_id))
                     conn.commit()
+<<<<<<< HEAD
                     st.success(f"Order ID {selected_order_id} updated successfully!")
                     st.rerun()
 
@@ -583,6 +627,14 @@ if st.session_state.logged_in:
 #else:
 #    st.title("🏠 Home")
 #    st.write("Welcome to the Model Manager dashboard.\n\nUse the sidebar to navigate through the application.")
+=======
+                    st.success("✅ Order updated successfully.")
+                    st.balloons()  # Optional fun effect
+
+    else:
+        st.title("🏠 Home")
+        st.write("Welcome to the Model Manager dashboard.\n\nUse the sidebar to navigate through the application.")
+>>>>>>> 28b2e84 (update)
 
 # --- Close DB connection ---
 conn.close()
