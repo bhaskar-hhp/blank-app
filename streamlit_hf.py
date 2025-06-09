@@ -485,7 +485,7 @@ def distributors_page():
     st.markdown(
         """
         <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
-            📊 Distributor Management
+            📊 Distributors
         </h5>
         """,
         unsafe_allow_html=True
@@ -558,9 +558,9 @@ def distributors_page():
 
     elif option == "Bulk Add":
         st.subheader("Bulk Add Distributors (CSV)")
-        st.markdown("CSV columns: name, location, address, contact, email, company")
+        st.markdown("CSV columns: name, location, address, contact, email, company, brand")
         # Download CSV template
-        template_df = pd.DataFrame(columns=["name", "location", "address", "contact", "email", "company"])
+        template_df = pd.DataFrame(columns=["name", "location", "address", "contact", "email", "company", "brand"])
         csv = template_df.to_csv(index=False).encode("utf-8")
         st.download_button("📥 Download CSV Template", csv, "distributor_template.csv", "text/csv")
 
