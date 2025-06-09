@@ -2,3 +2,4 @@ altair
 pandas
 streamlit
 firebase-admin
+Pillow
