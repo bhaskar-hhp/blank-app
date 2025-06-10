@@ -19,7 +19,13 @@ if not firebase_admin._apps:
     #cred = credentials.Certificate(json.loads(firebase_key))
     
     # Streamlit, Google Cloud
-    cred = credentials.Certificate("firebase_key.json")
+    #cred = credentials.Certificate("firebase_key.json")
+    
+
+    # Initialize Firestore codespace in .toml file
+    cred = credentials.Certificate(dict(st.secrets["firebase"]))
+
+    # Initialize the Firebase app
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
