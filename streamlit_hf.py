@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, initialize_app
 import io
 from io import StringIO
 from datetime import datetime, timedelta
@@ -10,10 +10,15 @@ import uuid
 from PIL import Image
 import os
 import base64
-
+import json
 
 # Initialize Firebase
 if not firebase_admin._apps:
+    # HF codes
+    #firebase_key = os.environ["FIREBASE_KEY"]
+    #cred = credentials.Certificate(json.loads(firebase_key))
+    
+    # Streamlit, Google Cloud
     cred = credentials.Certificate("firebase_key.json")
     firebase_admin.initialize_app(cred)
 
