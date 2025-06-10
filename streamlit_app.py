@@ -555,7 +555,12 @@ if st.session_state.logged_in:
         st.header("🛠️ Update Order")
 
         # Step 1: Select Status
-        status_options = ["New", "Processing", "Biling Done", "Dispatched", "Delivered", "Cancelled"]
+        status_options = [
+            "🆕 New", "⚙️ Processing", "💳 Biling Done", 
+            "🚚 Dispatched", "📦 Delivered", "❌ Cancelled"
+        ]
+        selected_status = st.select_slider("Select Order Status Category", options=status_options)
+
         selected_status = st.select_slider("Select Order Status Category", status_options)
 
         # Step 2: Fetch orders with selected status
