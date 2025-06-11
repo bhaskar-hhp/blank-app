@@ -15,18 +15,18 @@ import json
 # Initialize Firebase
 if not firebase_admin._apps:
     # HF codes
-    firebase_key = os.environ["FIREBASE_KEY"]
-    cred = credentials.Certificate(json.loads(firebase_key))
+    #firebase_key = os.environ["FIREBASE_KEY"]
+    #cred = credentials.Certificate(json.loads(firebase_key))
     
     # Streamlit, Google Cloud
     #cred = credentials.Certificate("firebase_key.json")
     
     # Render
-    cred = credentials.Certificate("/etc/secrets/firebase_key.json")
+    #cred = credentials.Certificate("/etc/secrets/firebase_key.json")
 
 
     # Initialize Firestore codespace in .toml file
-    #cred = credentials.Certificate(dict(st.secrets["firebase"]))
+    cred = credentials.Certificate(dict(st.secrets["firebase"]))
 
     # Initialize the Firebase app
     firebase_admin.initialize_app(cred)
@@ -40,7 +40,7 @@ st.set_page_config(layout="wide")
 # -------------------------------
 # 🔐 LOGIN SECTION
 # -------------------------------
-@st.dialog("🔐 Login ")
+@st.dialog("🔐 Login Test")
 def login():
     
     #st.title("🔐 Login")
