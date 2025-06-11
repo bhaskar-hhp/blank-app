@@ -15,8 +15,8 @@ import json
 # Initialize Firebase
 if not firebase_admin._apps:
     # HF codes
-    #firebase_key = os.environ["FIREBASE_KEY"]
-    #cred = credentials.Certificate(json.loads(firebase_key))
+    firebase_key = os.environ["FIREBASE_KEY"]
+    cred = credentials.Certificate(json.loads(firebase_key))
     
     # Streamlit, Google Cloud
     #cred = credentials.Certificate("firebase_key.json")
