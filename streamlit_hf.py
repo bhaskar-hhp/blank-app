@@ -40,7 +40,7 @@ st.set_page_config(layout="wide")
 # -------------------------------
 # 🔐 LOGIN SECTION
 # -------------------------------
-@st.dialog("🔐 Login")
+@st.dialog("🔐 Login Test")
 def login():
     
     #st.title("🔐 Login")
