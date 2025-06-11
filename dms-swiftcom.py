@@ -534,7 +534,7 @@ def distributors_page():
         if records:   
             # Specify the desired column order
             df = pd.DataFrame(records)
-            column_order = ["name", "location","address", "contact", "email", "company"]  # Rearrange as needed
+            column_order = ["name", "location","address", "contact", "email", "company", "assigned_to", "brand"]  # Rearrange as needed
             ordered_columns = [col for col in column_order if col in df.columns] + [col for col in df.columns if col not in column_order and col != "id"]
             st.dataframe(df[ordered_columns])
         else:
