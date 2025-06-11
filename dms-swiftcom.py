@@ -583,7 +583,7 @@ def distributors_page():
         # Upload CSV
         file = st.file_uploader("Upload CSV", type="csv")
         if file:
-            df = pd.read_csv(file)
+            df = pd.read_csv(file, encoding='utf-8')
             if all(col in df.columns for col in ["name", "location", "address", "contact", "email", "company", "brand", "assigned_to"]):
                 for _, row in df.iterrows():
                     add_distributor(row.to_dict())
