@@ -24,9 +24,9 @@ if not firebase_admin._apps:
     # Render
     cred = credentials.Certificate("/etc/secrets/firebase_key.json")
 
-    if not cred:
+    #if not cred:
         # Initialize Firestore codespace in .toml file
-        cred = credentials.Certificate(dict(st.secrets["firebase"]))
+    #    cred = credentials.Certificate(dict(st.secrets["firebase"]))
 
     # Initialize the Firebase app
     firebase_admin.initialize_app(cred)
