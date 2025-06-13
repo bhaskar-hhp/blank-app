@@ -11,14 +11,16 @@ from PIL import Image
 import os
 import base64
 import json
+from pymongo import MongoClient
+
 
 # Initialize Firebase
 if not firebase_admin._apps:
-    cred = credentials.Certificate("/etc/secrets/firebase_key.json")
-    if not cred:
-        # Initialize Firestore codespace in .toml file
-        cred = credentials.Certificate(dict(st.secrets["firebase"]))
 
+    try:
+        cred = credentials.Certificate("/etc/secrets/firebase_key.json")
+    except Exception:
+        cred = credentials.Certificate(dict(st.secrets["firebase"]))
 
     # HF codes
     #firebase_key = os.environ["FIREBASE_KEY"]
@@ -36,6 +38,12 @@ if not firebase_admin._apps:
     # Initialize the Firebase app
     firebase_admin.initialize_app(cred)
 
+    #adding Mongodb Connecttion & Collection
+client = MongoClient("mongodb+srv://bhaskar:bhaskar@cluster0.tvgh7sc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+mdb = client["my_database"]  # DB group name
+collection = mdb["Dist"]     # Collection name
+
+
 db = firestore.client()
 st.Page.title="Swiftcom DMS"
 st.set_page_config(layout="wide")
@@ -47,26 +55,56 @@ st.set_page_config(layout="wide")
 # -------------------------------
 st.dialog("🔐 Login")
 def login():
-    
-    #st.title("🔐 Login")
-    with st.form("login_form"):
+    col1,col2,col3=st.columns(3)
+    with col2:
+
         
-        username = st.text_input("Username").strip().upper()
-        password = st.text_input("Password", type="password")
-        submitted = st.form_submit_button("Login")
-        if submitted:
-            users_ref = db.collection("users")
-            query = users_ref.where("name", "==", username).where("pass", "==", password).get()
-            if query:
-                st.write("qwery in")
-                user_data = query[0].to_dict()
-                st.session_state.logged_in = True
-                st.session_state.username = username
-                st.session_state.user_role = user_data.get("type", "Standard")
-                st.success(f"Welcome, {username}!")
-                st.rerun()
+    
+        st.title("🔐 Login")
+        with st.form("login_form"):
+            login_type = st.radio("Select login:",("👥Members","🤝Distributors"),horizontal=True)
+            st.divider()
+            
+            username = st.text_input("Username").strip().upper()
+            password = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Login")
+            if submitted:
+                if login_type == "👥Members":
+                    users_ref = db.collection("users")
+                    query = users_ref.where("name", "==", username).where("pass", "==", password).get()
+                    if query:
+                        user_data = query[0].to_dict()
+                        st.session_state.logged_in = True
+                        st.session_state.username = username
+                        st.session_state.user_role = user_data.get("type", "Standard")
+                        st.success(f"Welcome, {username}!")
+                        st.rerun()
+                
+                elif login_type == "🤝Distributors":
+                    client = MongoClient("mongodb+srv://bhaskar:bhaskar@cluster0.tvgh7sc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+                    mdb = client["my_database"]  # DB group name
+                    collection = mdb["Dist"]     # Collection name
+
+                    user_data = collection.find_one({"id": username, "pwd": password})
+                    if user_data:
+                        st.write(user_data)
+                        st.session_state.logged_in = True
+                        st.session_state.username = username
+                        st.session_state.user_role = user_data.get("type", "Guest")
+                        st.success(f"Welcome, {username}!")
+                        st.write("check1")
+                        st.rerun()
+
+                        
+                else:
+                    st.error("Invalid username or password.")
+                    st.write(user_data)
+                    st.write("check2")
+                    
             else:
-                st.error("Invalid credentials")
+                if username and password:
+                    st.error("Invalid login type")
+                    st.write("check3")
 
 # -------------------------------
 # 🚪 LOGOUT FUNCTION

@@ -3,3 +3,4 @@ pandas
 streamlit
 firebase-admin
 Pillow
+pymongo
