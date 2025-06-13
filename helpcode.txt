@@ -5,6 +5,10 @@ after connect github paste on termiinal
 ------------------------
 git config --global user.email "bhaskar.hhp.photos2@gmail.com"
 git config --global user.name "bhaskar-hhp"
+while get error:
+
+git config pull.rebase true 
+swiftcomcdpl@cloudshell:~/blank-app$ git config pull.rebase false
 
 create / install requirement.txt
 --------------------------------
