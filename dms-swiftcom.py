@@ -86,25 +86,24 @@ def login():
                     collection = mdb["Dist"]     # Collection name
 
                     user_data = collection.find_one({"id": username, "pwd": password})
+                    
+                    
                     if user_data:
                         st.write(user_data)
                         st.session_state.logged_in = True
                         st.session_state.username = username
                         st.session_state.user_role = user_data.get("type", "Guest")
                         st.success(f"Welcome, {username}!")
-                        st.write("check1")
-                        st.rerun()
-
                         
+                        st.rerun()
+                    else:
+                        st.error("Invalid username or password.")                                               
                 else:
-                    st.error("Invalid username or password.")
-                    st.write(user_data)
-                    st.write("check2")
-                    
+                    st.error("Invalid username or password.")                   
             else:
                 if username and password:
                     st.error("Invalid login type")
-                    st.write("check3")
+            
 
 # -------------------------------
 # 🚪 LOGOUT FUNCTION
