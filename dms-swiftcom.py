@@ -585,13 +585,11 @@ def distributors_page():
 
     if option == "View":
         st.subheader("View Distributors")
-        records = get_distributors()
-        if records:   
-            # Specify the desired column order
-            df = pd.DataFrame(records)
-            column_order = ["name", "location","address", "contact", "email", "company", "assigned_to", "brand"]  # Rearrange as needed
-            ordered_columns = [col for col in column_order if col in df.columns] + [col for col in df.columns if col not in column_order and col != "id"]
-            st.dataframe(df[ordered_columns])
+        view_data=dist_collection.find({},{"_id":0})
+        #st.dataframe(view_data)
+
+        if view_data:           
+            st.dataframe(view_data)
         else:
             st.info("No distributors found.")
 
