@@ -88,11 +88,10 @@ def login():
                     user_data = collection.find_one({"id": username, "pwd": password})
                     
                     
-                    if user_data:
-                        st.write(user_data)
+                    if user_data:                    
                         st.session_state.logged_in = True
-                        st.session_state.username = username
-                        st.session_state.user_role = user_data.get("type", "Guest")
+                        st.session_state.username = user_data.get("name", username)
+                        st.session_state.user_role = "Guest"
                         st.success(f"Welcome, {username}!")
                         
                         st.rerun()
