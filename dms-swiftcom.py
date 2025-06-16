@@ -14,39 +14,52 @@ import json
 from pymongo import MongoClient
 
 
+# HF codes
+#firebase_key = os.environ["FIREBASE_KEY"]
+#cred = credentials.Certificate(json.loads(firebase_key))
+
+# Streamlit, Google Cloud
+#cred = credentials.Certificate("firebase_key.json")
+
+# Render
+#cred = credentials.Certificate("/etc/secrets/firebase_key.json")
+
+# Initialize Firestore codespace in .toml file
+#    cred = credentials.Certificate(dict(st.secrets["firebase"]))
+
+
 # Initialize Firebase
 if not firebase_admin._apps:
 
     try:
+        #adding Mongodb Connecttion & Collection for Firebase - Render
         cred = credentials.Certificate("/etc/secrets/firebase_key.json")
+        
     except Exception:
+        #adding Mongodb Connecttion & Collection for Firebase - Streamlit
         cred = credentials.Certificate(dict(st.secrets["firebase"]))
 
-    # HF codes
-    #firebase_key = os.environ["FIREBASE_KEY"]
-    #cred = credentials.Certificate(json.loads(firebase_key))
-    
-    # Streamlit, Google Cloud
-    #cred = credentials.Certificate("firebase_key.json")
-    
-    # Render
-    #cred = credentials.Certificate("/etc/secrets/firebase_key.json")
-
-    # Initialize Firestore codespace in .toml file
-    #    cred = credentials.Certificate(dict(st.secrets["firebase"]))
 
     # Initialize the Firebase app
     firebase_admin.initialize_app(cred)
 
-    #adding Mongodb Connecttion & Collection
-uri = st.secrets["mongodb"]["uri"]
-db_name = st.secrets["mongodb"]["db"]
+try:
+    #adding Mongodb Connecttion & Collection for MongoDB - Render
+    uri = os.environ["MONGODB_URI"]
+    db_name = os.environ["MONGODB_DB"]
 
+except Exception:
+    #adding Mongodb Connecttion & Collection for MongoDB - Streamlit
+    uri = st.secrets["mongodb"]["uri"]
+    db_name = st.secrets["mongodb"]["db"]
+    
+
+# Initialize the MongoDB app
 client = MongoClient(uri)
 db = client[db_name]  # DB group name
 dist_collection = db["Dist"]     # Collection name
 
-
+# Initialize Firestore
 db = firestore.client()
 st.Page.title="Swiftcom DMS"
 st.set_page_config(layout="wide")
