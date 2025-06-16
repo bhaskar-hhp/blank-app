@@ -61,6 +61,7 @@ dist_collection = db["Dist"]     # Collection name
 
 # Initialize Firestore
 db = firestore.client()
+
 st.Page.title="Swiftcom DMS"
 st.set_page_config(layout="wide")
 
