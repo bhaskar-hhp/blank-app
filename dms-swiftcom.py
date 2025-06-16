@@ -39,9 +39,12 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
     #adding Mongodb Connecttion & Collection
-client = MongoClient("mongodb+srv://bhaskar:bhaskar@cluster0.tvgh7sc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-mdb = client["my_database"]  # DB group name
-collection = mdb["Dist"]     # Collection name
+uri = st.secrets["mongodb"]["uri"]
+db_name = st.secrets["mongodb"]["db"]
+
+client = MongoClient(uri)
+db = client[db_name]  # DB group name
+dist_collection = db["Dist"]     # Collection name
 
 
 db = firestore.client()
@@ -81,13 +84,9 @@ def login():
                         st.rerun()
                 
                 elif login_type == "🤝Distributors":
-                    client = MongoClient("mongodb+srv://bhaskar:bhaskar@cluster0.tvgh7sc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-                    mdb = client["my_database"]  # DB group name
-                    collection = mdb["Dist"]     # Collection name
 
-                    user_data = collection.find_one({"id": username, "pwd": password})
-                    
-                    
+                    user_data = dist_collection.find_one({"id": username, "pwd": password})
+                                        
                     if user_data:                    
                         st.session_state.logged_in = True
                         st.session_state.username = user_data.get("name", username)
