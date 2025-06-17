@@ -53,7 +53,8 @@ except Exception:
     uri = st.secrets["mongodb"]["uri"]
     db_name = st.secrets["mongodb"]["db"]
     
-
+st.write("URI:", os.environ.get("MONGODB_URI", "Not Found"))
+st.write("DB Name:", os.environ.get("MONGODB_DB", "Not Found"))
 # Initialize the MongoDB app
 client = MongoClient(uri)
 db = client[db_name]  # DB group name
