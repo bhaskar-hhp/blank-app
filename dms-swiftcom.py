@@ -14,7 +14,7 @@ import json
 from pymongo import MongoClient
 
 st.Page.title="Swiftcom DMS"
-st.set_page_config(layout="wide")
+#st.set_page_config(layout="wide")
 # HF codes
 #firebase_key = os.environ["FIREBASE_KEY"]
 #cred = credentials.Certificate(json.loads(firebase_key))
