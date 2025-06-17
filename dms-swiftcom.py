@@ -597,34 +597,75 @@ def distributors_page():
     elif option == "Add":
         st.subheader("Add Distributor")
         
+        dist_location=dist_collection.find({},{"_id":0, "location":1})
+        location = sorted({doc["location"].upper() for doc in dist_location if "location" in doc and doc["location"]})
+        col_loc,col_new_loc=st.columns(2,gap="small",border=True)
+        with col_loc:
+            loc = st.selectbox("Location", location)
+        with col_new_loc:
+            st.write("if location not in the list, prefer add new location Checkbox[]")
 
-        records = get_distributors()
-        df1 = pd.DataFrame(records)
-        loc = st.selectbox("Location", df1["location"]).strip().upper()
-        st.write("if location not in the list, prefer add new location Checkbox[]")
-
-        if st.checkbox("Add New Loaction"):
-            location = st.text_input("Location").strip().upper()
-        else:
-            location = loc
-
-        st.divider()
-        name = st.text_input("Name")
-        address = st.text_area("Address (multiline)")
-        contact = st.text_input("Contact")
-        email = st.text_input("Email")
-        company = st.selectbox("Company", ["SWIFTCOM", "SHREE AGENCY"])
-        assigned_to = st.text_input("User Assigned To")
-        brand = st.text_input("Brand")
+            if st.checkbox("Add New Loaction"):
+                location = st.text_input("Location").strip().upper()
+            else:
+                location = loc
 
         st.divider()
+        col_user_left, col_user_mid, col_user_right = st.columns(3,gap="small",border=True)
+        with col_user_left:
+            id = st.text_input("Login ID")
+            pwd = st.text_input("Password", type="password")
+        with col_user_mid:
+            name = st.text_input("Name")
+            address = st.text_area("Address (multiline)")
+            contact = st.text_input("Contact")
+            email = st.text_input("Email")
+        with col_user_right:
+            company = st.selectbox("Company", ["SWIFTCOM", "SHREE AGENCY"])
+            assigned_to = st.text_input("Assigned To <User Name>")
+            brand = st.text_input("Brand")
+
+        st.divider()
+
+        doc = {
+            "location": location,
+            "id": id,
+            "pwd": pwd,
+            "name": name,
+            "address": address,
+            "contact": contact,
+            "email": email,
+            "company": company,
+            "assigned_to": assigned_to,
+            "brand": brand
+        }
 
         if st.button("Add"):
-            if name:
-                add_distributor({"name": name, "location": location,"address": address, "contact": contact, "email": email, "company": company, "assigned_to": assigned_to, "brand": brand})
+            if all([id, pwd, name, location, company, brand]):
+                collection.insert_one(doc)
                 st.success("Distributor added.")
             else:
-                st.warning("Name is required.")
+                col_left, col_right = st.columns(2)
+                with col_right:
+                    if not id:
+                        st.warning("* Login ID : ")
+
+                    if not pwd:
+                        st.warning("* Password : ")
+
+                    if not name:
+                        st.warning("* Name : ")
+
+                    if not location:
+                        st.warning("* Location : ")
+
+                    if not company:
+                        st.warning("* Company : ")
+
+                    if not brand:
+                        st.warning("* Brand : ")
+                with col_left:
+                    st.error(" Please fill all the required field. ->")
 
     elif option == "Bulk Add":
         st.subheader("Bulk Add Distributors (CSV)")
