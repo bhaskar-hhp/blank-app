@@ -13,7 +13,8 @@ import base64
 import json
 from pymongo import MongoClient
 
-
+st.Page.title="Swiftcom DMS"
+st.set_page_config(layout="wide")
 # HF codes
 #firebase_key = os.environ["FIREBASE_KEY"]
 #cred = credentials.Certificate(json.loads(firebase_key))
@@ -55,6 +56,7 @@ except Exception:
     
 st.write("URI:", os.environ.get("MONGODB_URI", "Not Found"))
 st.write("DB Name:", os.environ.get("MONGODB_DB", "Not Found"))
+
 # Initialize the MongoDB app
 client = MongoClient(uri)
 db = client[db_name]  # DB group name
@@ -63,8 +65,7 @@ dist_collection = db["Dist"]     # Collection name
 # Initialize Firestore
 db = firestore.client()
 
-st.Page.title="Swiftcom DMS"
-st.set_page_config(layout="wide")
+
 
 
 
