@@ -135,4 +135,17 @@ test
  Delete User > Select user ID to be make selectbox
 >>>>>>> 28b2e84 (update)
 
+Use a Uptime Pinger (Free Workaround)
+Use a free service to ping your app URL every few minutes to keep it awake:
+
+✅ Examples:
+
+UptimeRobot : https://uptimerobot.com/
+
+Cron-job.org : https://cron-job.org/
+
+Better Stack : https://betterstack.com/
+
+Set it to ping your Render URL every 5–10 minutes.
+
 current Line 586
