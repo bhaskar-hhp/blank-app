@@ -642,7 +642,7 @@ def distributors_page():
 
         if st.button("Add"):
             if all([id, pwd, name, location, company, brand]):
-                collection.insert_one(doc)
+                dist_collection.insert_one(doc)
                 st.success("Distributor added.")
             else:
                 col_left, col_right = st.columns(2)
@@ -706,7 +706,8 @@ def distributors_page():
         if dist_data:            
             selected = st.selectbox("Select Distributor by Name", dist_data)
             selected_data = dist_collection.find_one({"name": selected}, {"_id": 0})
-            st.write("Selected Distributor Details : ", selected_data["name"])
+            
+            st.warning(f"Selected Distributor Details :   '**{selected}**'")
             st.divider()
             col_left, col_mid,col_right = st.columns(3)
             with col_left:
@@ -760,15 +761,15 @@ def distributors_page():
 
     elif option == "Delete":
         st.subheader("Delete Distributor Update Pending Mongodb")
-        records = get_distributors()
-        if records:
-            df = pd.DataFrame(records)
-            selected = st.selectbox("Select Distributor to Delete", df["name"])
-            doc_id = df[df["name"] == selected]["id"].values[0]
+        dist_name=dist_collection.find({},{"_id":0, "name":1})
+        
+        if dist_name:
+            selected = st.selectbox("Select Distributor to Delete", dist_name)
             if st.button("Delete"):
-                delete_distributor(doc_id)
-                st.success("Distributor deleted.")
-        else:
+                dist_collection.delete_one({"name": selected})
+            
+                st.success(f"Distributor deleted : '**{selected}**' ")
+        else: 
             st.info("No distributors to delete.")
 
 
