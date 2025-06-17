@@ -669,57 +669,97 @@ def distributors_page():
 
     elif option == "Bulk Add":
         st.subheader("Bulk Add Distributors (CSV)")
-        st.markdown("CSV columns: name, location, address, contact, email, company, brand, assigned_to")
+        st.markdown("CSV columns: id, pwd, name, location, address, contact, email, company, brand, assigned_to")
         # Download CSV template
-        template_df = pd.DataFrame(columns=["name", "location", "address", "contact", "email", "company", "brand", "assigned_to"])
+        template_df = pd.DataFrame(columns=["id", "pwd","name", "location", "address", "contact", "email", "company", "brand", "assigned_to"])
         csv = template_df.to_csv(index=False).encode("utf-8")
         st.download_button("📥 Download CSV Template", csv, "distributor_template.csv", "text/csv")
 
         # Upload CSV
+        required_cols = ["id", "pwd", "name", "location", "address", "contact", "email", "company", "brand", "assigned_to"]
+
         file = st.file_uploader("Upload CSV", type="csv")
+
         if file:
             df = pd.read_csv(file, encoding='utf-8')
-            if all(col in df.columns for col in ["name", "location", "address", "contact", "email", "company", "brand", "assigned_to"]):
+
+            if all(col in df.columns for col in required_cols):
+                bulk_data = []
                 for _, row in df.iterrows():
-                    add_distributor(row.to_dict())
-                st.success("Bulk upload complete.")
+                    # Clean and prepare each row
+                    doc = {k: str(v).strip() if pd.notna(v) else "" for k, v in row.to_dict().items()}
+                    doc["location"] = doc.get("location", "").upper()  # make location UPPERCASE
+                    bulk_data.append(doc)
+
+                if bulk_data:
+                    dist_collection.insert_many(bulk_data)
+                    st.success("Bulk upload complete.")
+                else:
+                    st.warning("No valid data found in the uploaded CSV.")
             else:
-                st.error("CSV must have columns: name, location, address, contact, email, company, brand, assigned_to")
+                missing = [col for col in required_cols if col not in df.columns]
+                st.error(f"CSV is missing required columns: {', '.join(missing)}")
 
     elif option == "Update":
         st.subheader("Update Distributor")
-        records = get_distributors()
-        if records:
-            df = pd.DataFrame(records)
-            selected = st.selectbox("Select Distributor by Name", df["name"])
-            selected_data = df[df["name"] == selected].iloc[0]
+        dist_data = dist_collection.find({}, {"_id": 0, "name": 1}).sort("name", 1)
+        if dist_data:            
+            selected = st.selectbox("Select Distributor by Name", dist_data)
+            selected_data = dist_collection.find_one({"name": selected}, {"_id": 0})
+            st.write("Selected Distributor Details : ", selected_data["name"])
             st.divider()
-            doc_id = selected_data["id"]
-            name = st.text_input("Name", selected_data["name"])
-            location = st.text_input("Location", selected_data["location"]).strip().upper()
-            address = st.text_area("Address", selected_data["address"])
-            contact = st.text_input("Contact", selected_data["contact"])
-            email = st.text_input("Email", selected_data["email"])
-            
-            options = ["SWIFTCOM", "SHREE AGENCY"]
-            selected_value = selected_data["company"]
-            # Find index of selected_value in options list
-            index = options.index(selected_value) if selected_value in options else 0
-            # Show selectbox with selected value
-            company = st.selectbox("Company", options, index=index)
+            col_left, col_mid,col_right = st.columns(3)
+            with col_left:
+                id = st.text_input("ID", selected_data["id"])
+                pwd = st.text_input("Password", selected_data["pwd"], type="password")
+                location = st.text_input("Location", selected_data["location"]).strip().upper()
+            with col_mid:
+                name = st.text_input("Name", selected_data["name"])               
+                address = st.text_area("Address", selected_data["address"])
+                contact = st.text_input("Contact", selected_data["contact"])
+                email = st.text_input("Email", selected_data["email"])
+            with col_right:                                
+                options = ["SWIFTCOM", "SHREE AGENCY"]
+                selected_value = selected_data["company"]
+                # Find index of selected_value in options list
+                index = options.index(selected_value) if selected_value in options else 0
+                # Show selectbox with selected value
+                company = st.selectbox("Company", options, index=index)
 
-            brand= st.text_input("Brand", selected_data["brand"])
-            assigned_to = st.text_input("Assigned To", selected_data["assigned_to"])
+                brand= st.text_input("Brand", selected_data["brand"])
+                assigned_to = st.text_input("Assigned To", selected_data["assigned_to"])
 
             st.divider()
             if st.button("Update"):
-                update_distributor(doc_id, {"name": name, "location": location,"address": address, "contact": contact, "email": email, "company": company, "assigned_to": assigned_to, "brand": brand})
-                st.success("Distributor updated.")
+                # Build the update document
+                update_fields = {
+                    "id": id,
+                    "pwd": pwd,
+                    "name": name,
+                    "location": location,
+                    "address": address,
+                    "contact": contact,
+                    "email": email,
+                    "company": company,
+                    "assigned_to": assigned_to,
+                    "brand": brand
+                }
+
+                # Perform the update using MongoDB
+                result = dist_collection.update_one(
+                    {"name": name},     # Make sure doc_id is the _id of the document
+                    {"$set": update_fields}
+                )
+
+                if result.modified_count:
+                    st.success("Distributor updated successfully.")
+                else:
+                    st.info("No changes were made (data may be identical).")
         else:
             st.info("No distributors available.")
 
     elif option == "Delete":
-        st.subheader("Delete Distributor")
+        st.subheader("Delete Distributor Update Pending Mongodb")
         records = get_distributors()
         if records:
             df = pd.DataFrame(records)
