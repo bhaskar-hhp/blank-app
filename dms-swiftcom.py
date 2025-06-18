@@ -821,37 +821,23 @@ def distributors_ledgers_page():
 
     with tab1:
         st.info("Tab Selected : 💰 Ledger Balance")
-        st.write("🔍 Select ")
+        #st.write("🔍 Select ")
 
         colb, colc = st.columns(2)
         with colb:
             # --- UI Filters: Company ---
-            company_list = sorted(df_ledger["company"].dropna().unique())
-            selected_companies = st.multiselect("Select Company(s)", company_list)
-
-            # Filter dataframe by selected companies
-            if selected_companies:
-                filtered_by_company = df_ledger[df_ledger["company"].isin(selected_companies)]
-            else:
-                filtered_by_company = df_ledger.copy()
+            brand_cursor = dist_collection.find({}, {"_id": 0, "brand": 1})
+            brand_list = sorted({doc["brand"].strip().upper() for doc in brand_cursor if "brand" in doc and doc["brand"]})
+            selected_brand = st.selectbox("Select Brand", brand_list)
         with colc:
-            # --- Filter by selected company, then Brand ---
-            brand_list = sorted(filtered_by_company["brand"].dropna().unique())
-            selected_brands = st.multiselect("Select Brand(s)", brand_list)
+            # --- UI Filters: Location ---
+            location_cursor=dist_collection.find({"location":selected_brand},{"_id":0, "location":1})
+            location_list = sorted({doc["location"].strip().upper() for doc in location_cursor if "location" in doc and doc["location"]})
+            selected_location=st.selectbox("Select Location", location_list)
 
-            # Further filter by selected brands
-            if selected_brands:
-                filtered_by_brand = filtered_by_company[filtered_by_company["brand"].isin(selected_brands)]
-            else:
-                filtered_by_brand = filtered_by_company.copy()
 
-        # --- Filter by Brand ---
-
-        location_list = sorted(filtered_by_brand["location"].dropna().unique())
-        selected_locations = st.multiselect("Select Location(s)", location_list)
-
-        if selected_locations:
-            filtered_ledgers = filtered_by_brand[filtered_by_brand["location"].isin(selected_locations)]
+        if selected_location:
+            filtered_ledgers = filtered_by_brand[filtered_by_brand["location"].str.upper() == selected_location]
             final_ledgers = filtered_ledgers["name"].tolist()
         else:
             final_ledgers = []
