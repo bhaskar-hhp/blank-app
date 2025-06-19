@@ -140,3 +140,7 @@ Better Stack : https://betterstack.com/
 Set it to ping your Render URL every 5–10 minutes.
 
 current Line 600
+
+ if user_role in ["Guest"]:
+            if st.button("📝 Ledger"):
+                st.session_state.selected_page = "Ledger"

@@ -1490,6 +1490,90 @@ def att_managment_page():
 
     st.write("Attendance Managment page is comming soon")
 
+def ledger_page():
+    if st.session_state.get("user_role") not in ["Guest"]:
+        st.error("Access denied.")
+        #---------------------- individual page title------------------
+    st.markdown(
+        """
+            <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white; text-align: center'>
+            📒 Distributors Ledger Viewer
+            </h5>
+        """,
+        unsafe_allow_html=True
+    )
+
+    
+    # Google Drive file IDs
+    file_id = '1Qt_dcHn8YNeVL6s7m7647YssIoukdNoB'
+    bal_file_id = '1F39ERDJAiRTOYnNTnThtF-sIl_-zX3j5'
+
+    # Construct direct download URLs
+    csv_url = f'https://drive.google.com/uc?id={file_id}'
+    bal_csv_url = f'https://drive.google.com/uc?id={bal_file_id}'
+
+    # Load CSVs
+    df = pd.read_csv(csv_url)
+    bal_df = pd.read_csv(bal_csv_url)
+
+    # UI block for ledger selection
+
+    if 'LedgerName' in df.columns and 'Date' in df.columns:
+        # Convert 'Date' column to datetime if not already
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+
+        # Get unique ledger names
+        #st.session_state.username = "Manoj Enterprise Jio Phone"
+        selected_ledger = st.session_state.username
+
+        # Default date range: last 2 months
+        today = datetime.today()
+        default_from_date = today - timedelta(days=60)
+        default_to_date = today
+
+        # Date inputs (shown to user)
+        col1, col2=st.columns(2)
+        with col1:
+            from_date = st.date_input("🗓️From Date", default_from_date)
+        with col2:
+            to_date = st.date_input("🗓️To Date", default_to_date)
+        st.markdown(f"🗓️ Showing ledger from **{from_date.strftime('%d-%m-%y')}** to **{to_date.strftime('%d-%m-%y')}**")
+        #   st.divider()
+
+        # Filter dataframe
+        filtered_df = df[
+            (df['LedgerName'] == selected_ledger) &
+            (df['Date'] >= pd.to_datetime(from_date)) &
+            (df['Date'] <= pd.to_datetime(to_date))
+        ].drop(columns=['LedgerName'])
+
+        # 👉 Format 'Date' for display as dd-mm-yy
+        if 'Date' in filtered_df.columns:
+            filtered_df['Date'] = filtered_df['Date'].dt.strftime('%d-%m-%y')
+
+        st.subheader(f"📑 _Ledger Details_ : `{st.session_state.username}`")
+        st.dataframe(filtered_df, use_container_width=True, hide_index=True)
+
+    else:
+        st.error("❌ 'LedgerName' or 'Date' column not found in the main ledger data.")
+
+    # Show closing balance
+    if 'Ledger Name' in bal_df.columns:
+        filtered_bal_df = bal_df[bal_df['Ledger Name'] == selected_ledger]
+        if not filtered_bal_df.empty:
+            closing_balance = filtered_bal_df['Closing Balance'].values[0]
+            st.markdown(f"💰 **Closing Balance**")
+            if closing_balance < 0:
+                st.error(f"Closing Balance for **{selected_ledger}** is:   ₹ {closing_balance:,.2f} Dr.")
+            else:
+                st.success(f"Closing Balance for **{selected_ledger}** is:   ₹ {closing_balance:,.2f} Cr.")
+        else:
+            st.warning("No balance information found for the selected ledger.")
+    else:
+        st.error("❌ 'Ledger Name' column not found in the balance data.")
+
+
+    
 
 # -------------------------------
 # 🚀 MAIN APP
@@ -1531,6 +1615,9 @@ def main():
         devices_page()
     elif page == "Distributors Ledgers":
         distributors_ledgers_page()
+    elif page == "Ledger":
+        ledger_page()
+
 
 
 
