@@ -831,7 +831,7 @@ def distributors_ledgers_page():
             selected_brand = st.selectbox("Select Brand", brand_list)
         with colc:
             # --- UI Filters: Location ---
-            location_cursor=dist_collection.find({"location":selected_brand},{"_id":0, "location":1})
+            location_cursor=dist_collection.find({"brand":selected_brand},{"_id":0, "location":1})
             location_list = sorted({doc["location"].strip().upper() for doc in location_cursor if "location" in doc and doc["location"]})
             selected_location=st.selectbox("Select Location", location_list)
 
