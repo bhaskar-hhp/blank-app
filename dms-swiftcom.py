@@ -133,12 +133,12 @@ st.markdown("""
     div.stButton > button {
         width: 100%;
         height: 45px;
-        font-size: 16px;
+        font-size: 11px;
         margin-bottom: 8px;
         background-color: #125078;
         color: white;
         border: none;
-        border-radius: 6px;
+        border-radius: 10px;
     }
 
     div.stButton > button:hover {
@@ -784,10 +784,7 @@ def distributors_ledgers_page():
     #st.header("📊 Distributors Ledgers")
 
     # --- Fetch ledger entries ---
-    docs = db.collection("Dist").stream()
-    ledger_data = [doc.to_dict() for doc in docs]
-    df_ledger = pd.DataFrame(ledger_data)
-
+    
     
 
     #---------------------- individual page title------------------
@@ -823,66 +820,76 @@ def distributors_ledgers_page():
         st.info("Tab Selected : 💰 Ledger Balance")
         #st.write("🔍 Select ")
 
-        colb, colc = st.columns(2)
+        colb, colc = st.columns(2, border=True)
         with colb:
             # --- UI Filters: Company ---
             brand_cursor = dist_collection.find({}, {"_id": 0, "brand": 1})
-            brand_list = sorted({doc["brand"].strip().upper() for doc in brand_cursor if "brand" in doc and doc["brand"]})
-            selected_brand = st.selectbox("Select Brand", brand_list)
+            brand_list = sorted({doc["brand"] for doc in brand_cursor if "brand" in doc and doc["brand"]})
+            selected_brand = st.selectbox("Select Brand :", brand_list, index=None, placeholder="- Select brand - ")
         with colc:
-            # --- UI Filters: Location ---
-            location_cursor=dist_collection.find({"brand":selected_brand},{"_id":0, "location":1})
-            location_list = sorted({doc["location"].strip().upper() for doc in location_cursor if "location" in doc and doc["location"]})
-            selected_location=st.selectbox("Select Location", location_list)
+            filter_location_check=st.checkbox("Filter location")
 
+            if filter_location_check:
+                # --- UI Filters: Location ---
+                location_cursor=dist_collection.find({"brand":selected_brand},{"_id":0, "location":1})
+                location_list = sorted({doc["location"] for doc in location_cursor if "location" in doc and doc["location"]})
+                selected_location=st.selectbox("Select Location :", location_list, index=None, placeholder="- Select location - ")
+                if selected_location:
+                    filtered_ledgers = dist_collection.find({"brand": selected_brand, "location": selected_location}, {"_id": 0, "name": 1})
+                    final_ledgers = [doc["name"] for doc in filtered_ledgers if "name" in doc]
+                else:
+                    final_ledgers = []
+            else:
+                # --- UI Filters: Brand ---
+                    if selected_brand:
+                        filtered_ledgers = dist_collection.find({"brand": selected_brand}, {"_id": 0, "name": 1})
+                        final_ledgers = [doc["name"] for doc in filtered_ledgers if "name" in doc]
+                    else:
+                        final_ledgers = []
 
-        if selected_location:
-            filtered_ledgers = filtered_by_brand[filtered_by_brand["location"].str.upper() == selected_location]
-            final_ledgers = filtered_ledgers["name"].tolist()
-        else:
-            final_ledgers = []
+        search_button=st.button("🔍 Search")
+        if search_button:
+            st.divider()
+        
+            # --- Load balance CSV from Google Drive ---
+            csv_url = "https://drive.google.com/uc?id=1F39ERDJAiRTOYnNTnThtF-sIl_-zX3j5"
+            df_bal = pd.read_csv(csv_url)
 
-        st.divider()
-    
-        # --- Load balance CSV from Google Drive ---
-        csv_url = "https://drive.google.com/uc?id=1F39ERDJAiRTOYnNTnThtF-sIl_-zX3j5"
-        df_bal = pd.read_csv(csv_url)
+            # --- Filter matching ledgers ---
+            df_bal_filtered = df_bal[df_bal["Ledger Name"].isin(final_ledgers)]
 
-        # --- Filter matching ledgers ---
-        df_bal_filtered = df_bal[df_bal["Ledger Name"].isin(final_ledgers)]
+            # --- Clean Closing Balance ---
+            df_bal_filtered["Closing Balance"] = df_bal_filtered["Closing Balance"].astype(str)
 
-        # --- Clean Closing Balance ---
-        df_bal_filtered["Closing Balance"] = df_bal_filtered["Closing Balance"].astype(str)
+            def parse_balance(val):
+                val = val.replace("Cr", "").replace("Dr", "").replace(",", "").strip()
+                try:
+                    return float(val)
+                except:
+                    return 0.0
 
-        def parse_balance(val):
-            val = val.replace("Cr", "").replace("Dr", "").replace(",", "").strip()
-            try:
-                return float(val)
-            except:
-                return 0.0
+            df_bal_filtered["BalanceValue"] = df_bal_filtered["Closing Balance"].apply(parse_balance)
 
-        df_bal_filtered["BalanceValue"] = df_bal_filtered["Closing Balance"].apply(parse_balance)
+            # --- Split into Dr and Cr based on sign ---
+            df_dr = df_bal_filtered[df_bal_filtered["BalanceValue"] < 0][["Ledger Name", "Closing Balance"]].reset_index(drop=True)
+            df_cr = df_bal_filtered[df_bal_filtered["BalanceValue"] >= 0][["Ledger Name", "Closing Balance"]].reset_index(drop=True)
 
-        # --- Split into Dr and Cr based on sign ---
-        df_dr = df_bal_filtered[df_bal_filtered["BalanceValue"] < 0][["Ledger Name", "Closing Balance"]].reset_index(drop=True)
-        df_cr = df_bal_filtered[df_bal_filtered["BalanceValue"] >= 0][["Ledger Name", "Closing Balance"]].reset_index(drop=True)
+            # --- Totals ---
+            total_cr = df_bal_filtered[df_bal_filtered["BalanceValue"] >= 0]["BalanceValue"].sum()
+            total_dr = df_bal_filtered[df_bal_filtered["BalanceValue"] < 0]["BalanceValue"].sum()
 
-        # --- Totals ---
-        total_cr = df_bal_filtered[df_bal_filtered["BalanceValue"] >= 0]["BalanceValue"].sum()
-        total_dr = df_bal_filtered[df_bal_filtered["BalanceValue"] < 0]["BalanceValue"].sum()
+            # --- Display in two columns ---
+            col1, col2 = st.columns(2, border=True)
 
-        # --- Display in two columns ---
-        col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("### 💚 Cr. Balance")
+                st.dataframe(df_cr)
+                st.success(f"**Total Cr: ₹ {total_cr:,.2f}**")
 
-        with col1:
-            st.markdown("### 💚 Cr. Balance")
-            st.dataframe(df_cr)
-            st.success(f"**Total Cr: ₹ {total_cr:,.2f}**")
-
-        with col2:
-            st.markdown("### 🔴 Dr. Balance (Oustanding)")
-            st.dataframe(df_dr)
-            st.error(f"**Total Dr: ₹ {abs(total_dr):,.2f}**")
+            with col2:
+                st.markdown("### 🔴 Dr. Balance (Oustanding)")
+                st.dataframe(df_dr)
+                st.error(f"**Total Dr: ₹ {abs(total_dr):,.2f}**")
 
     with tab2:
         st.info("Tab Selected : 📖 Daybook")
@@ -947,7 +954,7 @@ def distributors_ledgers_page():
 
             # Get unique ledger names
             ledger_options = df['LedgerName'].dropna().unique()
-            selected_ledger = st.selectbox("🔍 Select Ledger", sorted(ledger_options))
+            selected_ledger = st.selectbox("🔍 Select Ledger", sorted(ledger_options),index=None, placeholder="- Select Ledger - ")
 
             # Default date range: last 2 months
             today = datetime.today()
