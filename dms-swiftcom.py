@@ -80,7 +80,7 @@ def login():
     
         st.title("🔐 Login")
         with st.form("login_form"):
-            login_type = st.radio("Select login:",("👥Members","🤝Distributors"),horizontal=True)
+            login_type = st.radio("Select login:",("👥Members","🤝Partners"),horizontal=True)
             st.divider()
             
             username = st.text_input("Username").strip().upper()
@@ -97,10 +97,16 @@ def login():
                         st.session_state.user_role = user_data.get("type", "Standard")
                         st.success(f"Welcome, {username}!")
                         st.rerun()
-                
-                elif login_type == "🤝Distributors":
-
-                    user_data = dist_collection.find_one({"id": username, "pwd": password})
+                    else:
+                        st.error("Invalid username or password.")        
+                        
+                elif login_type == "🤝Partners":
+                    if username.isdigit():
+                        # do 1: username is all digits, treat as int
+                        user_data = dist_collection.find_one({"id": int(username), "pwd": password})                        
+                    else:
+                        # do 2: username has non-digit chars
+                        user_data = dist_collection.find_one({"id": username, "pwd": password})
                                         
                     if user_data:                    
                         st.session_state.logged_in = True
@@ -114,7 +120,7 @@ def login():
                 else:
                     st.error("Invalid username or password.")                   
             else:
-                if username and password:
+                if not username and password:
                     st.error("Invalid login type")
             
 
