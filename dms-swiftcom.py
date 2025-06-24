@@ -177,7 +177,7 @@ def show_sidebar():
 
 
         # Admin , "Standard", "Guest": -----------------------------------------------------------------------------
-        if user_role in ["Admin", "Standard", "Guest"]:
+        if user_role in ["Admin", "Standard"]:
             if st.button("📦Purchase Order"):
                 st.session_state.selected_page = "Order"
 
@@ -220,8 +220,8 @@ def show_sidebar():
         # --------------------------------------------------------------------------------------------------
 
 
-        if st.button("ℹ️ About"):
-            st.session_state.selected_page = "About"
+        #if st.button("ℹ️ About"):
+        #    st.session_state.selected_page = "About"
 
         # Logout button
         if st.button("🚪 Logout"):
