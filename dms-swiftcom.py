@@ -77,25 +77,28 @@ def login():
     with col2:
 
         
-    
+        
         st.title("🔐 Login")
         with st.form("login_form"):
             login_type = st.radio("Select login:",("👥Members","🤝Partners"),horizontal=True)
             st.divider()
-            
+
             username = st.text_input("Username").strip().upper()
             password = st.text_input("Password", type="password")
             submitted = st.form_submit_button("Login")
+            
             if submitted:
                 if login_type == "👥Members":
-                    users_ref = db.collection("users")
-                    query = users_ref.where("name", "==", username).where("pass", "==", password).get()
+                    
+                    query = users_collection.find_one({"name": username, "pass": password})
+                    st.write(query)
+                    
                     if query:
-                        user_data = query[0].to_dict()
+                        
                         st.session_state.logged_in = True
-                        st.session_state.username = username
-                        st.session_state.user_role = user_data.get("type", "Standard")
-                        st.success(f"Welcome, {username}!")
+                        st.session_state.username = query.get("full_name", username)
+                        st.session_state.user_role = query.get("type", "Standard")
+                        st.success(f"Welcome, {st.session_state.username}!")
                         st.rerun()
                     else:
                         st.error("Invalid username or password.")        
@@ -228,7 +231,7 @@ def show_sidebar():
 # -------------------------------
 def home_page():
     st.title("🏠 Home Page")
-    st.write("Welcome to the homepage.")
+    st.write(f"Welcome ! **_{st.session_state.username}_** to the homepage.")
 
 # Users Management with radio options
 
