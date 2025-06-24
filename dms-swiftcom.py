@@ -13,9 +13,14 @@ import base64
 import json
 from pymongo import MongoClient
 
-st.set_page_config(layout="wide")
-st.Page.title="Swiftcom DMS"
 
+#Page title
+st.set_page_config(
+   page_title="Swiftcom DMS",
+   page_icon=":material/bar_chart:",
+   layout="wide",
+   initial_sidebar_state="expanded",
+)
 # HF codes
 #firebase_key = os.environ["FIREBASE_KEY"]
 #cred = credentials.Certificate(json.loads(firebase_key))
