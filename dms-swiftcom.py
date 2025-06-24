@@ -60,7 +60,7 @@ except Exception:
 client = MongoClient(uri)
 db = client[db_name]  # DB group name
 dist_collection = db["Dist"]     # Collection name
-
+users_collection = db["users"]
 # Initialize Firestore
 db = firestore.client()
 
@@ -257,8 +257,9 @@ def users_page():
         options.extend(["Delete User", "Update User"])
         #st.divider()
         user_option = st.radio("Choose action", options, horizontal=True)
-        st.divider()
+        #st.divider()
 
+    
 
 
     # Add User
@@ -266,64 +267,49 @@ def users_page():
         st.subheader("Add New User")
         image_file = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
         with st.form("add_user_form"):
-            #image_file = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
-            col1, col2 = st.columns([1,3],gap="small",border=True)
+            col1, col2 = st.columns([1, 3], gap="small")
             with col1:
-                # Image preview
                 if image_file:
                     st.write("Image Uploaded:")
                     try:
                         image = Image.open(image_file)
-                        
-                        st.image(image, caption="Image Preview", width=150)                    
+                        st.image(image, caption="Image Preview", width=150)
                     except Exception as e:
                         st.error(f"Error opening image: {e}")
                 else:
-                    st.write("Image not uploaded")    
+                    st.write("Image not uploaded")
+
             with col2:
                 name = st.text_input("User Name").strip().upper()
                 user_type = st.selectbox("Type", ["Admin", "Back Office", "Standard", "Guest"])
                 password = st.text_input("Password", type="password")
 
             with st.expander("Add additional user details"):
-                col3, col4 = st.columns(2,gap="small",border=True)
+                col3, col4 = st.columns(2, gap="small")
                 with col3:
-                    full_name=st.text_input("Full Name").strip().upper()
-                    doj_in=st.date_input("Date of Joining")
-                    doj = doj_in.strftime("%d-%m-%Y")
-                    dob_in=st.date_input("Date of Birth")
-                    dob = dob_in.strftime("%d-%m-%Y")
-                    status=st.selectbox("Status", ["Active", "Inactive"])
-                    contact=st.text_input("Contact").strip().upper()
-                    work_area=st.text_input("Work Area").strip().upper()
-                    work_profile=st.text_input("Work Profile").strip().upper()
-                    Brand=st.text_input("Brand").strip().upper()
+                    
+                    full_name = st.text_input("Full Name").strip().upper()
+                    doj_in = st.date_input("Date of Joining")
+                    dob_in = st.text_input("Date of Birth")
+                    status = st.selectbox("Status", ["Active", "Inactive"])
+                    contact = st.text_input("Contact").strip().upper()
+                    work_area = st.text_input("Work Area").strip().upper()
+                    work_profile = st.text_input("Work Profile").strip().upper()
+                    Brand = st.text_input("Brand").strip().upper()
                 with col4:
-                    fname=st.text_input("Father's Name").strip().upper()
-                    address=st.text_area("Address").strip().upper()
-                    email=st.text_input("Email").strip().upper()
-                    doc_url=st.text_input("Document URL").strip()
-                    Closing_Date_in=st.date_input("Closing Date")
-                    Closing_Date=Closing_Date_in.strftime("%d-%m-%Y")
+                    fname = st.text_input("Father's Name").strip().upper()
+                    address = st.text_area("Address").strip().upper()
+                    email = st.text_input("Email").strip().upper()
+                    doc_url = st.text_input("Document URL").strip()
+                    Closing_Date_in = st.date_input("Closing Date")
 
-
-            # Submit button
             submitted = st.form_submit_button("Submit")
-            
+
             if submitted:
-                users_ref = db.collection("users")
-                all_users = users_ref.stream()
-                
-                # Check for duplicate user name
-                name_exists = False
-                max_id = 0
-                for doc in all_users:
-                    data = doc.to_dict()
-                    if data.get("name") == name:
-                        name_exists = True
-                    if isinstance(data.get("id"), int):
-                        max_id = max(max_id, data["id"])
-                
+                all_users = list(users_collection.find())
+                name_exists = any(user.get("name") == name for user in all_users)
+                max_id = max([user.get("id", 0) for user in all_users], default=0)
+
                 image_b64 = ""
                 if image_file:
                     img = Image.open(image_file)
@@ -331,212 +317,19 @@ def users_page():
                     img.save(buffered, format="PNG")
                     image_b64 = base64.b64encode(buffered.getvalue()).decode()
 
-
                 if name_exists:
                     st.error(f"⚠️ User name '{name}' already exists. Please choose another name.")
                 else:
                     new_id = max_id + 1
-                    users_ref.add({"id": new_id,"image_b64":image_b64, "name": name, "type": user_type, "pass": password, "full_name":full_name, "doj":doj,"dob":dob,"status":status,"contact":contact,"work_area":work_area,"work_profile":work_profile,"Brand":Brand,"fname":fname,"address":address,"email":email,"doc_url":doc_url,"Closing_Date":Closing_Date})
-                    st.success(f"✅ User '{name}' added with ID {new_id}.")
-
-    # View User
-    elif user_option == "View User":
-        st.subheader("📋 View Users Database ")
-        docs = db.collection("users").stream()
-        all_users = [doc.to_dict() for doc in docs]
-        brand_options = sorted(set(user.get("Brand", "N/A") for user in all_users if user.get("Brand")))
-        selected_brands = st.multiselect("Select Brands to filter", brand_options, default=brand_options)
-        selected_type=st.selectbox("Select Type to filter",["Admin", "Back Office", "Standard", "Guest"])
-
-        # Create 3 tabs
-        tab1, tab2, tab3 = st.tabs(["🟢 Active Users", "🔴 Inactive Users", "❔ No Status Users"])
-
-        # Fetch all users once
-        docs = db.collection("users").stream()
-        all_users = [doc.to_dict() for doc in docs]
-
-        # Display helper function
-        def show_users(users_list):
-            for data in users_list:
-                with st.container():
-                    st.markdown(
-                        """
-                        <div style="border: 1px solid #2196F3; border-radius: 5px; padding: 1px; margin-bottom: 10px;">
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-                    cols = st.columns([1, 3])
-                    with cols[0]:
-                        if data.get("image_b64"):
-                            img_bytes = base64.b64decode(data["image_b64"])
-                            st.image(img_bytes, width=80)
-                        else:
-                            st.write("❌ No Image")
-                        st.markdown(f"`{data.get('full_name', 'N/A')}`")
-                    with cols[1]:
-                        c1, c2=st.columns(2,gap="small",border=True)
-                        with c1:
-                            st.markdown(f"**👤 User Name:** {data.get('name', 'N/A')}")
-                            st.markdown(f"**🧑‍💻 Type:** {data.get('type', 'N/A')}")
-                            st.markdown(f"**📌 Status:** {data.get('status', '❌ Not Set')}")
-                            st.markdown(f"**💼 Brand:** {data.get('Brand', 'N/A')}")
-                        with c2:
-                            st.markdown(f"**📅 Date of Joining:** {data.get('doj', 'N/A')}")
-                            st.markdown(f"**📅 Date of Birth:** {data.get('dob', 'N/A')}")
-                            st.markdown(f"**📞 Contact:** {data.get('contact', 'N/A')}")
-
-                        with st.expander(" 📂 `View additional user details`"):
-                            c3, c4=st.columns(2,gap="small",border=True)
-                            with c3:
-                                st.markdown(f"**💼 Work Area:** {data.get('work_area', 'N/A')}")
-                                st.markdown(f"**💼 Work Profile:** {data.get('work_profile', 'N/A')}")
-                                st.markdown(f"**📧 Email:** {data.get('email', 'N/A')}")
-                                st.markdown(f"**📅 Closing Date:** {data.get('Closing_Date', 'N/A')}")
-                            with c4:
-                                st.markdown(f"**👤 Father Name:** {data.get('fname', 'N/A')}")
-                                st.markdown(f"**🏠 Address:** {data.get('address', 'N/A')}")
-                                
-                                
-                                #st.markdown(f"**📄 Document URL:** {data.get('doc_url', 'N/A')}")
-                                doc_url = data.get("doc_url")
-                                if doc_url:
-                                    st.link_button("📄 Open Document", doc_url)
-                                else:
-                                    st.write("❌ No Document URL")
-
-
-                    st.markdown("</div>", unsafe_allow_html=True)
-
-        # 🟢 Active
-        with tab1:
-            active_users = [
-                u for u in all_users 
-                if u.get("status", "").lower() == "active" and u.get("Brand") in selected_brands and u.get("type") == selected_type
-                ]
-            if active_users:
-                st.write(f"🎯 {len(active_users)} `active user(s) matched with selected brands.`")
-                show_users(active_users)
-            else:
-                st.info("No active users found.")
-
-        # 🔴 Inactive
-        with tab2:
-            inactive_users = [
-                u for u in all_users 
-                if u.get("status", "").lower() == "inactive" and u.get("Brand") in selected_brands and u.get("type") == selected_type
-            ]
-            if inactive_users:
-                st.write(f"🎯 {len(inactive_users)} `inactive user(s) matched with selected brands.`")
-                show_users(inactive_users)
-            else:
-                st.info("No inactive users found.")
-
-        # ❔ No Status
-        with tab3:
-            no_status_users = [
-                u for u in all_users 
-                if not u.get("status") or not u.get("Brand")
-            ]
-            if no_status_users:
-                st.write(f"🎯 {len(no_status_users)} ` user(s) found without STATUS or BRAND selected.`")
-                show_users(no_status_users)
-            else:
-                st.info("All users have status set.")
-
-
-    # Delete User (Admin only)
-    elif user_option == "Delete User":
-        st.subheader("🗑️ Delete User")
-        docs = db.collection("users").get()
-        usernames = [doc.to_dict().get("name") for doc in docs]
-        to_delete = st.selectbox("Select user to delete", usernames)
-        if st.button("Delete"):
-            # find doc
-            for doc in docs:
-                if doc.to_dict().get("name") == to_delete:
-                    db.collection("users").document(doc.id).delete()
-                    st.success(f"Deleted user {to_delete}.")
-                    break
-
-    # Update User (Admin only)
-    elif user_option == "Update User":
-        st.subheader("✏️ Update User")
-        
-        users_ref = db.collection("users")
-        docs = users_ref.stream()
-        user_list = []
-        user_dict = {}
-        for doc in docs:
-            data = doc.to_dict()
-            name = data.get("name", "")
-            user_list.append(name)
-            user_dict[name] = {"doc_id": doc.id, "data": data}
-
-        selected_user = st.selectbox("Select User to Update", user_list)
-
-        if selected_user:
-            user_data = user_dict[selected_user]["data"]
-            doc_id = user_dict[selected_user]["doc_id"]
-
-            image_file = st.file_uploader("Upload New Image (optional)", type=["png", "jpg", "jpeg"])
-
-            with st.form("update_user_form"):
-                col1, col2 = st.columns([1, 3], gap="small", border=True)
-                with col1:
-                    if image_file:
-                        st.write("New Image Uploaded:")
-                        try:
-                            image = Image.open(image_file)
-                            st.image(image, caption="Preview", width=150)
-                        except Exception as e:
-                            st.error(f"Error opening image: {e}")
-                    elif user_data.get("image_b64"):
-                        st.image(base64.b64decode(user_data["image_b64"]), width=150)
-                    else:
-                        st.write("❌ No image available")
-
-                with col2:
-                    name = st.text_input("User Name", value=user_data.get("name", "")).strip().upper()
-                    user_type = st.selectbox("Type", ["Admin", "Back Office", "Standard", "Guest"], index=["Admin", "Back Office", "Standard", "Guest"].index(user_data.get("type", "Standard")))
-                    password = st.text_input("Password", value=user_data.get("pass", ""), type="password")
-
-                with st.expander("Update additional user details"):
-                    col3, col4 = st.columns(2, gap="small", border=True)
-                    with col3:
-                        full_name = st.text_input("Full Name", value=user_data.get("full_name", "")).strip().upper()
-                        
-                        doj_in=st.text_input("Date of Joining", value=user_data.get("doj"))
-                        dob_in=st.text_input("Date of Birth", value=user_data.get("dob"))
-                        status = st.selectbox("Status", ["Active", "Inactive"], index=["Active", "Inactive"].index(user_data.get("status", "Active")))
-                        contact = st.text_input("Contact", value=user_data.get("contact", "")).strip().upper()
-                        work_area = st.text_input("Work Area", value=user_data.get("work_area", "")).strip().upper()
-                        work_profile = st.text_input("Work Profile", value=user_data.get("work_profile", "")).strip().upper()
-                        Brand = st.text_input("Brand", value=user_data.get("Brand", "")).strip().upper()
-                    with col4:
-                        fname = st.text_input("Father's Name", value=user_data.get("fname", "")).strip().upper()
-                        address = st.text_area("Address", value=user_data.get("address", "")).strip().upper()
-                        email = st.text_input("Email", value=user_data.get("email", "")).strip().upper()
-                        doc_url = st.text_input("Document URL", value=user_data.get("doc_url", "")).strip()
-                        Closing_Date_in = st.text_input("Closing Date", value=user_data.get("Closing_Date"))
-                # Submit button
-                submitted = st.form_submit_button("Update User")
-                if submitted:
-                    image_b64 = user_data.get("image_b64", "")
-                    if image_file:
-                        img = Image.open(image_file)
-                        buffered = io.BytesIO()
-                        img.save(buffered, format="PNG")
-                        image_b64 = base64.b64encode(buffered.getvalue()).decode()
-
-                    updated_data = {
+                    user_data = {
+                        "id": new_id,
+                        "image_b64": image_b64,
                         "name": name,
                         "type": user_type,
                         "pass": password,
-                        "image_b64": image_b64,
                         "full_name": full_name,
-                        "doj": doj_in,
-                        "dob": dob_in,
+                        "doj": doj_in.strftime("%d-%m-%Y"),
+                        "dob": dob_in.strftime("%d-%m-%Y"),
                         "status": status,
                         "contact": contact,
                         "work_area": work_area,
@@ -546,13 +339,178 @@ def users_page():
                         "address": address,
                         "email": email,
                         "doc_url": doc_url,
-                        "Closing_Date": Closing_Date_in
+                        "Closing_Date": Closing_Date_in.strftime("%d-%m-%Y")
                     }
+                    users_collection.insert_one(user_data)
+                    st.success(f"✅ User '{name}' added with ID {new_id}.")
 
-                    users_ref.document(doc_id).update(updated_data)
-                    st.success(f"✅ User '{name}' updated successfully.")
-                
-# -----------------------------------------Distributors placeholder
+    elif user_option == "View User":
+        st.subheader("📋 View Users Database")
+        all_users = list(users_collection.find())
+
+        brand_options = sorted(set(user.get("Brand", "N/A") for user in all_users if user.get("Brand")))
+        col_brand, col_type=st.columns(2)
+        with col_brand:
+            selected_brands = st.multiselect("Select Brands to filter", brand_options, default=brand_options)
+        with col_type:
+            selected_type = st.selectbox("Select Type to filter", ["Admin", "Back Office", "Standard", "Guest"])
+
+        tab1, tab2, tab3 = st.tabs(["🟢 Active Users", "🔴 Inactive Users", "❔ No Status Users"])
+
+        def show_users(users_list):
+            for data in users_list:
+                with st.container():
+                    #st.markdown("<div style='border: 1px solid #2196F3; border-radius: 5px; padding: 1px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+                    with st.expander(f" **_{data.get('full_name', 'N/A')}_**  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; `💼 Brand:` **{data.get('Brand', 'N/A')}**",icon="👤"):
+                        cols = st.columns([1, 3])
+                        with cols[0]:
+                            if data.get("image_b64"):
+                                img_bytes = base64.b64decode(data["image_b64"])
+                                st.image(img_bytes, width=80)
+                            else:
+                                st.write("❌ No Image")
+                            #st.markdown(f"`{data.get('full_name', 'N/A')}`")
+                        # PILLS START HERE
+                        # options = [":material/view_list:",":material/edit:", ":material/delete:", ":material/add:"]
+                        # selection = st.pills("Tools:", options, selection_mode="single")
+                        # st.markdown(f"Your selected options: {selection}.")
+
+                        with cols[1]:
+                            c1, c2 = st.columns(2, gap="small")
+                            with c1:
+                                st.markdown(f"**👤 User Name:** {data.get('name', 'N/A')}")
+                                st.markdown(f"**🧑‍💻 Type:** {data.get('type', 'N/A')}")
+                                st.markdown(f"**📌 Status:** {data.get('status', '❌ Not Set')}")
+                                #st.markdown(f"**💼 Brand:** {data.get('Brand', 'N/A')}")
+                            with c2:
+                                st.markdown(f"**📅 Date of Joining:** {data.get('doj', 'N/A')}")
+                                st.markdown(f"**📅 Date of Birth:** {data.get('dob', 'N/A')}")
+                                st.markdown(f"**📞 Contact:** {data.get('contact', 'N/A')}")
+                        #     with st.expander(" 📂 `View additional user details`"):
+                            st.divider()
+                            c3, c4 = st.columns(2, gap="small")
+                            with c3:
+                                st.markdown(f"**💼 Work Area:** {data.get('work_area', 'N/A')}")
+                                st.markdown(f"**💼 Work Profile:** {data.get('work_profile', 'N/A')}")
+                                st.markdown(f"**📧 Email:** {data.get('email', 'N/A')}")
+                                st.markdown(f"**📅 Closing Date:** {data.get('Closing_Date', 'N/A')}")
+                            with c4:
+                                st.markdown(f"**👤 Father Name:** {data.get('fname', 'N/A')}")
+                                st.markdown(f"**🏠 Address:** {data.get('address', 'N/A')}")
+                                doc_url = data.get("doc_url")
+                                if doc_url:
+                                    st.link_button("📄 Open Document", doc_url)
+                                else:
+                                    st.write("❌ No Document URL")
+                        #st.markdown("</div>", unsafe_allow_html=True)
+
+        with tab1:
+            active_users = [u for u in all_users if u.get("status", "").lower() == "active" and u.get("Brand") in selected_brands and u.get("type") == selected_type]
+            if active_users:
+                st.write(f"🎯 {len(active_users)} `active user(s) matched with selected brands.`")
+                show_users(active_users)
+            else:
+                st.info("No active users found.")
+
+        with tab2:
+            inactive_users = [u for u in all_users if u.get("status", "").lower() == "inactive" and u.get("Brand") in selected_brands and u.get("type") == selected_type]
+            if inactive_users:
+                st.write(f"🎯 {len(inactive_users)} `inactive user(s) matched with selected brands.`")
+                show_users(inactive_users)
+            else:
+                st.info("No inactive users found.")
+
+        with tab3:
+            no_status_users = [u for u in all_users if not u.get("status") or not u.get("Brand")]
+            if no_status_users:
+                st.write(f"🎯 {len(no_status_users)} ` user(s) found without STATUS or BRAND selected.`")
+                show_users(no_status_users)
+            else:
+                st.info("All users have status set.")
+
+    elif user_option == "Delete User":
+        st.subheader("🗑️ Delete User")
+        all_users = list(users_collection.find())
+        usernames = [u.get("name") for u in all_users]
+        to_delete = st.selectbox("Select user to delete", usernames)
+        if st.button("Delete"):
+            users_collection.delete_one({"name": to_delete})
+            st.success(f"Deleted user {to_delete}.")
+
+    elif user_option == "Update User":
+        st.subheader("✏️ Update User")
+        all_users = list(users_collection.find())
+        usernames = [u.get("name") for u in all_users]
+        selected_user = st.selectbox("Select User to Update", usernames)
+        user_data = users_collection.find_one({"name": selected_user})
+        image_file = st.file_uploader("Upload New Image (optional)", type=["png", "jpg", "jpeg"])
+
+        with st.form("update_user_form"):
+            col1, col2 = st.columns([1, 3], gap="small")
+            with col1:
+                if image_file:
+                    image = Image.open(image_file)
+                    st.image(image, caption="Preview", width=150)
+                elif user_data.get("image_b64"):
+                    st.image(base64.b64decode(user_data["image_b64"]), width=150)
+                else:
+                    st.write("❌ No image available")
+
+            with col2:
+                name = st.text_input("User Name", value=user_data.get("name", "")).strip().upper()
+                user_type = st.selectbox("Type", ["Admin", "Back Office", "Standard", "Guest"], index=["Admin", "Back Office", "Standard", "Guest"].index(user_data.get("type", "Standard")))
+                password = st.text_input("Password", value=user_data.get("pass", ""), type="password")
+
+            with st.expander("Update additional user details"):
+                col3, col4 = st.columns(2, gap="small")
+                with col3:
+                    full_name = st.text_input("Full Name", value=user_data.get("full_name", "")).strip().upper()
+                    doj = st.text_input("Date of Joining", value=user_data.get("doj", ""))
+                    dob = st.text_input("Date of Birth", value=user_data.get("dob", ""))
+                    status = st.selectbox("Status", ["Active", "Inactive"], index=["Active", "Inactive"].index(user_data.get("status", "Active")))
+                    contact = st.text_input("Contact", value=user_data.get("contact", "")).strip().upper()
+                    work_area = st.text_input("Work Area", value=user_data.get("work_area", "")).strip().upper()
+                    work_profile = st.text_input("Work Profile", value=user_data.get("work_profile", "")).strip().upper()
+                    Brand = st.text_input("Brand", value=user_data.get("Brand", "")).strip().upper()
+                with col4:
+                    fname = st.text_input("Father's Name", value=user_data.get("fname", "")).strip().upper()
+                    address = st.text_area("Address", value=user_data.get("address", "")).strip().upper()
+                    email = st.text_input("Email", value=user_data.get("email", "")).strip().upper()
+                    doc_url = st.text_input("Document URL", value=user_data.get("doc_url", "")).strip()
+                    Closing_Date = st.text_input("Closing Date", value=user_data.get("Closing_Date", ""))
+
+            submitted = st.form_submit_button("Update User")
+
+            if submitted:
+                image_b64 = user_data.get("image_b64", "")
+                if image_file:
+                    img = Image.open(image_file)
+                    buffered = io.BytesIO()
+                    img.save(buffered, format="PNG")
+                    image_b64 = base64.b64encode(buffered.getvalue()).decode()
+
+                updated_data = {
+                    "name": name,
+                    "type": user_type,
+                    "pass": password,
+                    "image_b64": image_b64,
+                    "full_name": full_name,
+                    "doj": doj,
+                    "dob": dob,
+                    "status": status,
+                    "contact": contact,
+                    "work_area": work_area,
+                    "work_profile": work_profile,
+                    "Brand": Brand,
+                    "fname": fname,
+                    "address": address,
+                    "email": email,
+                    "doc_url": doc_url,
+                    "Closing_Date": Closing_Date
+                }
+                users_collection.update_one({"name": selected_user}, {"$set": updated_data})
+                st.success(f"✅ User '{name}' updated successfully.")
+ #-----------------------------------------Distributors placeholder
 
 def distributors_page():
     if st.session_state.get("user_role") not in ["Admin", "Back Office"]:
