@@ -91,7 +91,6 @@ def login():
                 if login_type == "👥Members":
                     
                     query = users_collection.find_one({"name": username, "pass": password})
-                    st.write(query)
                     
                     if query:
                         
@@ -184,25 +183,27 @@ def show_sidebar():
 
         # Admin , Back Office: -----------------------------------------------------------------------------
         if user_role in ["Admin", "Back Office"]:
-            if st.button("📦 Update Order"):
-                st.session_state.selected_page = "Update Order"
-            if st.button("📱 Devices"):
-                st.session_state.selected_page = "Devices"
-            if st.button("📊 Distributors"):
-                st.session_state.selected_page = "Distributors"
-            if st.button("📒 Distributors Ledgers"):
-                st.session_state.selected_page = "Distributors Ledgers"
-            if st.button("🚚 Logistics"):
-                st.session_state.selected_page = "Logistics"
+            with st.sidebar.expander(f" **Back Office Options** "):
+                if st.button("📦 Update Order"):
+                    st.session_state.selected_page = "Update Order"
+                if st.button("📱 Devices"):
+                    st.session_state.selected_page = "Devices"
+                if st.button("📊 Distributors"):
+                    st.session_state.selected_page = "Distributors"
+                if st.button("📒 Distributors Ledgers"):
+                    st.session_state.selected_page = "Distributors Ledgers"
+                if st.button("🚚 Logistics"):
+                    st.session_state.selected_page = "Logistics"
 
         # Admin Only --------------------------------------------------------------------------------------
         if user_role in ["Admin"]:
-            if st.button("📝 Users"):
-                st.session_state.selected_page = "Users"
-            if st.button("🛠️ Utility"):
-                st.session_state.selected_page = "Utility"
-            if st.button("🕒 Attendance Managment"):
-                st.session_state.selected_page = "Attendance Managment"
+            with st.sidebar.expander(f" **Admin Options** "):
+                if st.button("📝 Users"):
+                    st.session_state.selected_page = "Users"
+                if st.button("🛠️ Utility"):
+                    st.session_state.selected_page = "Utility"
+                if st.button("🕒 Attendance Managment"):
+                    st.session_state.selected_page = "Attendance Managment"
 
         # Guest Only --------------------------------------------------------------------------------------
         if user_role in ["Guest"]:
@@ -332,7 +333,7 @@ def users_page():
                         "pass": password,
                         "full_name": full_name,
                         "doj": doj_in.strftime("%d-%m-%Y"),
-                        "dob": dob_in.strftime("%d-%m-%Y"),
+                        "dob": dob_in,
                         "status": status,
                         "contact": contact,
                         "work_area": work_area,
@@ -364,7 +365,7 @@ def users_page():
             for data in users_list:
                 with st.container():
                     #st.markdown("<div style='border: 1px solid #2196F3; border-radius: 5px; padding: 1px; margin-bottom: 10px;'>", unsafe_allow_html=True)
-                    with st.expander(f" **_{data.get('full_name', 'N/A')}_**  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; `💼 Brand:` **{data.get('Brand', 'N/A')}**",icon="👤"):
+                    with st.expander(f" **{data.get('full_name', 'N/A')}**  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; `💼 Brand:` **{data.get('Brand', 'N/A')}**",icon="👤"):
                         cols = st.columns([1, 3])
                         with cols[0]:
                             if data.get("image_b64"):
@@ -372,34 +373,27 @@ def users_page():
                                 st.image(img_bytes, width=80)
                             else:
                                 st.write("❌ No Image")
-                            #st.markdown(f"`{data.get('full_name', 'N/A')}`")
-                        # PILLS START HERE
-                        # options = [":material/view_list:",":material/edit:", ":material/delete:", ":material/add:"]
-                        # selection = st.pills("Tools:", options, selection_mode="single")
-                        # st.markdown(f"Your selected options: {selection}.")
 
                         with cols[1]:
                             c1, c2 = st.columns(2, gap="small")
                             with c1:
-                                st.markdown(f"**👤 User Name:** {data.get('name', 'N/A')}")
-                                st.markdown(f"**🧑‍💻 Type:** {data.get('type', 'N/A')}")
-                                st.markdown(f"**📌 Status:** {data.get('status', '❌ Not Set')}")
-                                #st.markdown(f"**💼 Brand:** {data.get('Brand', 'N/A')}")
+                                st.markdown(f"**👤 `User Name:`** {data.get('name', 'N/A')}")
+                                st.markdown(f"**🧑‍💻 `Type:`** {data.get('type', 'N/A')}")
+                                st.markdown(f"**📌 `Status:`** {data.get('status', '❌ Not Set')}")
                             with c2:
-                                st.markdown(f"**📅 Date of Joining:** {data.get('doj', 'N/A')}")
-                                st.markdown(f"**📅 Date of Birth:** {data.get('dob', 'N/A')}")
-                                st.markdown(f"**📞 Contact:** {data.get('contact', 'N/A')}")
-                        #     with st.expander(" 📂 `View additional user details`"):
+                                st.markdown(f"**📅 `Date of Joining:`** {data.get('doj', 'N/A')}")
+                                st.markdown(f"**📅 `Date of Birth:`** {data.get('dob', 'N/A')}")
+                                st.markdown(f"**📞 `Contact:`** {data.get('contact', 'N/A')}")
                             st.divider()
                             c3, c4 = st.columns(2, gap="small")
                             with c3:
-                                st.markdown(f"**💼 Work Area:** {data.get('work_area', 'N/A')}")
-                                st.markdown(f"**💼 Work Profile:** {data.get('work_profile', 'N/A')}")
-                                st.markdown(f"**📧 Email:** {data.get('email', 'N/A')}")
-                                st.markdown(f"**📅 Closing Date:** {data.get('Closing_Date', 'N/A')}")
+                                st.markdown(f"**💼 `Work Area:`** {data.get('work_area', 'N/A')}")
+                                st.markdown(f"**💼 `Work Profile:`** {data.get('work_profile', 'N/A')}")
+                                st.markdown(f"**📧 `Email:`** {data.get('email', 'N/A')}")
+                                st.markdown(f"**📅 `Closing Date:`** {data.get('Closing_Date', 'N/A')}")
                             with c4:
-                                st.markdown(f"**👤 Father Name:** {data.get('fname', 'N/A')}")
-                                st.markdown(f"**🏠 Address:** {data.get('address', 'N/A')}")
+                                st.markdown(f"**👤 `Father Name:`** {data.get('fname', 'N/A')}")
+                                st.markdown(f"**🏠 `Address:`** {data.get('address', 'N/A')}")
                                 doc_url = data.get("doc_url")
                                 if doc_url:
                                     st.link_button("📄 Open Document", doc_url)
@@ -530,21 +524,21 @@ def distributors_page():
     )
     #--------------------------------------------------------------------
 
-    COLLECTION = "Dist"
+    # COLLECTION = "Dist"
 
-    # Firebase operations
-    def add_distributor(data):
-        db.collection(COLLECTION).add(data)
+    # # Firebase operations
+    # def add_distributor(data):
+    #     db.collection(COLLECTION).add(data)
 
-    def get_distributors():
-        docs = db.collection(COLLECTION).stream()
-        return [{**doc.to_dict(), "id": doc.id} for doc in docs]
+    # def get_distributors():
+    #     docs = db.collection(COLLECTION).stream()
+    #     return [{**doc.to_dict(), "id": doc.id} for doc in docs]
 
-    def update_distributor(doc_id, data):
-        db.collection(COLLECTION).document(doc_id).update(data)
+    # def update_distributor(doc_id, data):
+    #     db.collection(COLLECTION).document(doc_id).update(data)
 
-    def delete_distributor(doc_id):
-        db.collection(COLLECTION).document(doc_id).delete()
+    # def delete_distributor(doc_id):
+    #     db.collection(COLLECTION).document(doc_id).delete()
 
     # Streamlit UI
     
@@ -671,67 +665,69 @@ def distributors_page():
         st.subheader("Update Distributor")
         dist_data = dist_collection.find({}, {"_id": 0, "name": 1}).sort("name", 1)
         if dist_data:            
-            selected = st.selectbox("Select Distributor by Name", dist_data)
-            selected_data = dist_collection.find_one({"name": selected}, {"_id": 0})
+            selected = st.selectbox("Select Distributor by Name", dist_data,index=None, placeholder="- Select Name -")
+           
+            if selected is not None: 
+                selected_data = dist_collection.find_one({"name": selected}, {"_id": 0})
             
-            st.warning(f"Selected Distributor Details :   '**{selected}**'")
-            st.divider()
-            col_left, col_mid,col_right = st.columns(3)
-            with col_left:
-                id = st.text_input("ID", selected_data["id"])
-                pwd = st.text_input("Password", selected_data["pwd"], type="password")
-                location = st.text_input("Location", selected_data["location"]).strip().upper()
-            with col_mid:
-                name = st.text_input("Name", selected_data["name"])               
-                address = st.text_area("Address", selected_data["address"])
-                contact = st.text_input("Contact", selected_data["contact"])
-                email = st.text_input("Email", selected_data["email"])
-            with col_right:                                
-                options = ["SWIFTCOM", "SHREE AGENCY"]
-                selected_value = selected_data["company"]
-                # Find index of selected_value in options list
-                index = options.index(selected_value) if selected_value in options else 0
-                # Show selectbox with selected value
-                company = st.selectbox("Company", options, index=index)
+                st.warning(f"Selected Distributor Details :   '**{selected}**'")
+                st.divider()
+                col_left, col_mid,col_right = st.columns(3)
+                with col_left:
+                    id = st.text_input("ID", selected_data["id"])
+                    pwd = st.text_input("Password", selected_data["pwd"], type="password")
+                    location = st.text_input("Location", selected_data["location"]).strip().upper()
+                with col_mid:
+                    name = st.text_input("Name", selected_data["name"])               
+                    address = st.text_area("Address", selected_data["address"])
+                    contact = st.text_input("Contact", selected_data["contact"])
+                    email = st.text_input("Email", selected_data["email"])
+                with col_right:                                
+                    options = ["SWIFTCOM", "SHREE AGENCY"]
+                    selected_value = selected_data["company"]
+                    # Find index of selected_value in options list
+                    index = options.index(selected_value) if selected_value in options else 0
+                    # Show selectbox with selected value
+                    company = st.selectbox("Company", options, index=index)
 
-                brand= st.text_input("Brand", selected_data["brand"])
-                assigned_to = st.text_input("Assigned To", selected_data["assigned_to"])
+                    brand= st.text_input("Brand", selected_data["brand"])
+                    assigned_to = st.text_input("Assigned To", selected_data["assigned_to"])
 
-            st.divider()
-            if st.button("Update"):
-                # Build the update document
-                update_fields = {
-                    "id": id,
-                    "pwd": pwd,
-                    "name": name,
-                    "location": location,
-                    "address": address,
-                    "contact": contact,
-                    "email": email,
-                    "company": company,
-                    "assigned_to": assigned_to,
-                    "brand": brand
-                }
+                st.divider()
+                if st.button("Update"):
+                    # Build the update document
+                    update_fields = {
+                        "id": id,
+                        "pwd": pwd,
+                        "name": name,
+                        "location": location,
+                        "address": address,
+                        "contact": contact,
+                        "email": email,
+                        "company": company,
+                        "assigned_to": assigned_to,
+                        "brand": brand
+                    }
 
-                # Perform the update using MongoDB
-                result = dist_collection.update_one(
-                    {"name": name},     # Make sure doc_id is the _id of the document
-                    {"$set": update_fields}
-                )
+                    # Perform the update using MongoDB
+                    result = dist_collection.update_one(
+                        {"name": name},     # Make sure doc_id is the _id of the document
+                        {"$set": update_fields}
+                    )
 
-                if result.modified_count:
-                    st.success("Distributor updated successfully.")
-                else:
-                    st.info("No changes were made (data may be identical).")
-        else:
-            st.info("No distributors available.")
+                    if result.modified_count:
+                        st.success("Distributor updated successfully.")
+                    else:
+                        st.info("No changes were made (data may be identical).")
+            else:
+                st.info("No distributors available.")
 
     elif option == "Delete":
         st.subheader("Delete Distributor Update Pending Mongodb")
         dist_name=dist_collection.find({},{"_id":0, "name":1})
         
         if dist_name:
-            selected = st.selectbox("Select Distributor to Delete", dist_name)
+            selected = st.selectbox("Select Distributor to Delete", dist_name, index=None, placeholder="- Select Name -")
             if st.button("Delete"):
                 dist_collection.delete_one({"name": selected})
             
