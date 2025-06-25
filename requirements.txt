@@ -4,3 +4,4 @@ streamlit
 firebase-admin
 Pillow
 pymongo
+upstox-python-sdk
