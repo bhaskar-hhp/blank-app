@@ -100,7 +100,7 @@ def login():
                     if query:
                         
                         st.session_state.logged_in = True
-                        st.session_state.username = query.get("full_name", username)
+                        st.session_state.username = query.get("name", username)
                         st.session_state.user_role = query.get("type", "Standard")
                         st.success(f"Welcome, {st.session_state.username}!")
                         st.rerun()
@@ -225,8 +225,8 @@ def show_sidebar():
         # --------------------------------------------------------------------------------------------------
 
 
-        #if st.button("ℹ️ About"):
-        #    st.session_state.selected_page = "About"
+        if st.button("🔐 Change Password"):
+            st.session_state.selected_page = "Change_Password"
 
         # Logout button
         if st.button("🚪 Logout"):
@@ -1406,20 +1406,36 @@ def attendance_page():
 
 
 
-# ---------------------------------------------------------------About Page----------------------
-def about_page():
+# ---------------------------------------------------------------Change Password Page----------------------
+def Change_Password_page():
         #---------------------- individual page title------------------
     st.markdown(
         """
         <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
-            ℹ️ About
+            🔐 Change Password
         </h5>
         """,
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
 
-    st.write("About page is comming soon")
+    with st.form("Change Password"):
+        new_pass=st.text_input("Enter New Password :", type='password')
+        confirm_pass=st.text_input("Enter Confirm Password :", type='password')
+        submit=st.form_submit_button("Update Password",type="primary")
+        if new_pass and confirm_pass :
+                
+                if submit and new_pass==confirm_pass :
+
+                    if st.session_state.user_role == "Guest":
+                        dist_collection.update_one({"name": st.session_state.username}, {"$set": {"pwd": confirm_pass}})
+                    else:
+                        users_collection.update_one({"name": st.session_state.username}, {"$set":{"pass": confirm_pass}})
+
+                    st.success("Password Changed Successfully")
+
+                else:
+                    st.error("New Password & Confirm Password Not Matched")
 
 
 # ---------------------------------------------------------------Update Order Page----------------------
@@ -1573,8 +1589,8 @@ def main():
         utility_page()
     elif page == "Attendance":
         attendance_page()
-    elif page == "About":
-        about_page()
+    elif page == "Change_Password":
+        Change_Password_page()
     elif page == "Update Order":
         update_order_page()
     elif page == "Attendance Managment":
