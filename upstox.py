@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
+import os
 
 # === CONFIGURATION ===
 ACCESS_TOKEN = os.environ["ACCESS_TOKEN"]
