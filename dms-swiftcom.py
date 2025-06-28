@@ -193,8 +193,6 @@ def show_sidebar():
                     st.session_state.selected_page = "Update Order"
                 if st.button("📱 Devices"):
                     st.session_state.selected_page = "Devices"
-                if st.button("📊 Distributors"):
-                    st.session_state.selected_page = "Distributors"
                 if st.button("📒 Distributors Ledgers"):
                     st.session_state.selected_page = "Distributors Ledgers"
                 if st.button("🚚 Logistics"):
@@ -205,10 +203,12 @@ def show_sidebar():
             with st.sidebar.expander(f" **Admin Options** "):
                 if st.button("📝 Users"):
                     st.session_state.selected_page = "Users"
-                if st.button("🛠️ Utility"):
-                    st.session_state.selected_page = "Utility"
+                if st.button("📊 Distributors"):
+                    st.session_state.selected_page = "Distributors"
                 if st.button("🕒 Attendance Managment"):
                     st.session_state.selected_page = "Attendance Managment"
+                if st.button("🛠️ Utility"):
+                    st.session_state.selected_page = "Utility"
 
         # Guest Only --------------------------------------------------------------------------------------
         if user_role in ["Guest"]:
