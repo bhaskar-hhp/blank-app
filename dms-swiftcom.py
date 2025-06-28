@@ -141,6 +141,34 @@ def logout():
     st.rerun()
 
 # Inject custom CSS
+
+# Convert the local image to base64
+def get_base64(file_path):
+    with open(file_path, "rb") as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+# Path to your uploaded image
+img_path = "sback.jpg"
+img_base64 = get_base64(img_path)
+
+# Inject CSS for sidebar background image
+st.markdown(
+    f"""
+    <style>
+    section[data-testid="stSidebar"] {{
+        background-image: url("data:image/jpg;base64,{img_base64}");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: left;
+        color: #002233
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
 st.markdown("""
     <style>
     div.stButton > button {
