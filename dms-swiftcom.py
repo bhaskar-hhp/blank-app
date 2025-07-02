@@ -70,7 +70,11 @@ users_collection = db["users"]
 db = firestore.client()
 
 
-
+# Convert the local image to base64
+def get_base64(file_path):
+    with open(file_path, "rb") as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
 
 
 # -------------------------------
@@ -86,7 +90,7 @@ def login():
         st.title("🔐 Login")
         with st.form("login_form"):
             login_type = st.radio("Select login:",("👥Members","🤝Partners"),horizontal=True)
-            st.divider()
+            #st.divider()
 
             username = st.text_input("Username").strip().upper()
             password = st.text_input("Password", type="password")
@@ -142,11 +146,6 @@ def logout():
 
 # Inject custom CSS
 
-# Convert the local image to base64
-def get_base64(file_path):
-    with open(file_path, "rb") as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
 
 # Path to your uploaded image
 img_path = "sback.jpg"
@@ -221,6 +220,8 @@ def show_sidebar():
                     st.session_state.selected_page = "Update Order"
                 if st.button("📱 Devices"):
                     st.session_state.selected_page = "Devices"
+                if st.button("📊 Distributors"):
+                    st.session_state.selected_page = "Distributors"
                 if st.button("📒 Distributors Ledgers"):
                     st.session_state.selected_page = "Distributors Ledgers"
                 if st.button("🚚 Logistics"):
@@ -231,12 +232,10 @@ def show_sidebar():
             with st.sidebar.expander(f" **Admin Options** "):
                 if st.button("📝 Users"):
                     st.session_state.selected_page = "Users"
-                if st.button("📊 Distributors"):
-                    st.session_state.selected_page = "Distributors"
-                if st.button("🕒 Attendance Managment"):
-                    st.session_state.selected_page = "Attendance Managment"
                 if st.button("🛠️ Utility"):
                     st.session_state.selected_page = "Utility"
+                if st.button("🕒 Attendance Managment"):
+                    st.session_state.selected_page = "Attendance Managment"
 
         # Guest Only --------------------------------------------------------------------------------------
         if user_role in ["Guest"]:
@@ -1592,8 +1591,104 @@ def ledger_page():
 # -------------------------------
 def main():
     if not st.session_state.get("logged_in"):
-        login()
-        return
+
+                
+
+        app_img_path = "back.jpg"
+        app_img_base64 = get_base64(app_img_path)
+
+        if "logged_in" not in st.session_state:
+            st.session_state.logged_in = False
+
+        if not st.session_state.logged_in:
+            st.markdown(
+                f"""
+                <style>
+                .stApp {{
+                    background-image: url("data:image/jpg;base64,{app_img_base64}");
+                    background-size: cover;
+                    background-repeat: no-repeat;
+                    background-attachment: fixed;
+                    color: black
+                    
+                }}
+
+                /* To make header part transparent*/            
+                [data-testid="stHeader"]{{
+                    
+                    background-color: rgba(0,0,0,0);
+                }}
+
+                /* To make form design*/ 
+                [data-testid="stForm"] {{
+                    background: linear-gradient(135deg, lightBlue, white);
+                    
+                    padding: 30px;
+                    border-radius: 30px;
+                    box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+                    max-width: 500px;
+                    margin: 0 auto;
+                    color: Black;
+                }}
+
+                
+                /* Input fields, text, and labels */
+                label, input, textarea, .stTextInput, .stPassword, .stRadio label {{
+                    color: black !important;
+                }}
+
+                /* Radio button fixes */
+                .stRadio label, .stRadio div, div[role="radiogroup"] label, div[role="radiogroup"] > div {{
+                    color: black !important;
+                }}
+
+                /* To make button Redesign*/            
+                [data-testid="stBaseButton-secondaryFormSubmit"]{{
+                    margin: 0 auto;
+                    display: block; /* to set button @ Center*/
+                    background: linear-gradient(10deg, lightgreen, white);
+                    box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+                    padding: 8px 16px;
+                    margin-top: 20px;
+                    border-radius: 30px;
+                    width: 90%;
+                    padding: 15px;
+                }}
+                
+                [data-testid="stTextInputRootElement"]{{
+                    margin: 0 auto;
+                    background: linear-gradient(10deg, white, white);
+                    box-shadow: 4px 4px 12px rgba(1, 0, 0, .5);
+                }}
+
+                
+                /* Optional: light background for inputs */
+                input {{
+                    background-color: rgba(255, 255, 255, 0.85) !important;
+                }}
+                /* Optional: make input field background semi-transparent white */
+                input {{
+                    background-color: rgba(255, 255, 255, 0.8) !important;
+                }}
+                </style>
+                """,
+                unsafe_allow_html=True
+            )
+
+            login()
+            return
+        else:
+            st.markdown(
+            """
+            <style>
+            .stApp {
+                background: none !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+            )
+
 
     # set default page
     if "selected_page" not in st.session_state:
