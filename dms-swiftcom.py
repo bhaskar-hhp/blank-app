@@ -85,7 +85,27 @@ def login():
     col1,col2,col3=st.columns(3)
     with col2:
 
-        
+        st.markdown("""
+            <style>
+ 
+            .custom-title {
+                font-family: 'Poppins', sans-serif;
+                font-size: 62px;
+                color: white;
+                text-align: center;
+                text-shadow: 0 0 10px rgba(0, 0, 0, 1.9), 0 0 20px blue, 0 0 30px green;
+                background-color: 0;
+                padding: 0px;
+                border-radius: 0px;
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+                    
+                                </style>
+        """, unsafe_allow_html=True)
+
+        st.html("""<h2 class="custom-title">Swiftcom</h2>""")                    
+
         
         st.title("🔐 Login")
         with st.form("login_form"):
@@ -162,6 +182,8 @@ st.markdown(
         background-position: left;
         color: #002233
     }}
+
+    
     </style>
     """,
     unsafe_allow_html=True
@@ -193,7 +215,43 @@ st.markdown("""
 def show_sidebar():
     user_role = st.session_state.get("user_role")
     with st.sidebar:
-        st.markdown(f"**👤 {st.session_state.get('username')} (:blue[{user_role}])**")
+
+        st.markdown("""
+            <style>
+            .custom-title {
+                color: darkred;    
+                font-family: 'Poppins', sans-serif;
+                font-size: 42px;
+                
+                text-align: center;
+                font-weight: bold;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 1.2);
+                margin-bottom: 0;
+                margin-top: 0;
+                
+            }
+
+            .custom-title2 {
+                font-family: 'Poppins', sans-serif;
+                font-size: 42px;
+                color: white;
+                text-align: center;
+                text-shadow: 0 0 10px rgba(0, 0, 0, 1.9), 0 0 20px blue, 0 0 30px green;
+                background-color: 0;
+                padding: 0px;
+                border-radius: 0px;
+                margin-top: 0;
+                
+            }
+                    
+                                </style>
+        """, unsafe_allow_html=True)
+
+        #st.html("""<h2 class="custom-title">Swiftcom</h2> """)                    
+        st.html("""<h2 class="custom-title2">Swiftcom</h2>""")                    
+
+        #st.divider()
+        st.markdown(f"**👤 :blue[{st.session_state.get('username')}] (`{user_role}`)**")
         st.title("📂 Navigation")
 
         # All roles: Home
