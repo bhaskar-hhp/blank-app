@@ -80,17 +80,17 @@ def get_base64(file_path):
 # -------------------------------
 # 🔐 LOGIN SECTION
 # -------------------------------
-st.dialog("🔐 Login")
+#st.dialog("🔐 Login")
 def login():
-    col1,col2,col3=st.columns(3)
-    with col2:
-
+    col1,col2,col3=st.columns([1,2,1],vertical_alignment="center")
+    with col1:
         st.markdown("""
             <style>
  
             .custom-title {
+                transform: rotate(0deg);
                 font-family: 'Poppins', sans-serif;
-                font-size: 62px;
+                font-size: 36px;
                 color: white;
                 text-align: center;
                 text-shadow: 0 0 10px rgba(0, 0, 0, 1.9), 0 0 20px blue, 0 0 30px green;
@@ -104,12 +104,17 @@ def login():
                                 </style>
         """, unsafe_allow_html=True)
 
-        st.html("""<h2 class="custom-title">Swiftcom</h2>""")                    
+        st.html("""<h2 class="custom-title">Swiftcom </h2>""")                    
+
+
+    with col2:
+
 
         
-        st.title("🔐 Login")
+        
         with st.form("login_form"):
-            login_type = st.radio("Select login:",("👥Members","🤝Partners"),horizontal=True)
+            st.subheader("🔐 Login",divider=True)
+            login_type = st.radio("",("👥Members","🤝Partners"),horizontal=True)
             #st.divider()
 
             username = st.text_input("Username").strip().upper()
@@ -1648,9 +1653,32 @@ def ledger_page():
 # 🚀 MAIN APP
 # -------------------------------
 def main():
+    # Inject CSS to hide Streamlit UI elements
+    hide_streamlit_style = """
+        <style>
+        /* Hide top-right hamburger menu and fullscreen option */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        /*header {visibility: hidden;}*/
+        
+
+        /* Hide bottom-right Streamlit branding */
+        .stDeployButton {display: none;}
+        .st-emotion-cache-zq5wmm {display: none;}  /* Updated Streamlit version class for deploy button */
+
+        /* Optional: Hide top status bar completely */
+        .st-emotion-cache-1dp5vir.ezrtsby0 {display: none;}
+        </style>
+    """
+
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+    
+
     if not st.session_state.get("logged_in"):
 
-                
+        
+
+
 
         app_img_path = "back.jpg"
         app_img_base64 = get_base64(app_img_path)
@@ -1675,6 +1703,7 @@ def main():
                 [data-testid="stHeader"]{{
                     
                     background-color: rgba(0,0,0,0);
+
                 }}
 
                 /* To make form design*/ 
