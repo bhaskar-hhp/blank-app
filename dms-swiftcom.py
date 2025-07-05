@@ -1657,7 +1657,7 @@ def main():
     hide_streamlit_style = """
         <style>
         /* Hide top-right hamburger menu and fullscreen option */
-        #MainMenu {visibility: hidden;}
+        /*#MainMenu {visibility: hidden;}*/
         footer {visibility: hidden;}
         /*header {visibility: hidden;}*/
         
@@ -1667,7 +1667,7 @@ def main():
         .st-emotion-cache-zq5wmm {display: none;}  /* Updated Streamlit version class for deploy button */
 
         /* Optional: Hide top status bar completely */
-        .st-emotion-cache-1dp5vir.ezrtsby0 {display: none;}
+        /*.st-emotion-cache-1dp5vir.ezrtsby0 {display: none;}*/
         </style>
     """
 
