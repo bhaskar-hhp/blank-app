@@ -1657,9 +1657,9 @@ def main():
     hide_streamlit_style = """
         <style>
         /* Hide top-right hamburger menu and fullscreen option */
-        #MainMenu {visibility: hidden;}
+        /*#MainMenu {visibility: hidden;}*/
         footer {visibility: hidden;}
-        /*header {visibility: hidden;}*/
+        header {visibility: hidden;}
         
 
         /* Hide bottom-right Streamlit branding */
