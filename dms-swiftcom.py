@@ -329,7 +329,7 @@ def show_sidebar():
         st.markdown(
             f"""
             <div style='text-align: center; font-weight: bold;'>
-                👤 <span style='color: blue;'>{st.session_state.get('username')}</span> <code>({user_role})</code>
+                👤 <span style='color: blue;'>{st.session_state.get('username')}</span> <span style='color: green;'>({user_role})</span>
             </div>
             """,
             unsafe_allow_html=True
