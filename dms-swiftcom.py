@@ -1765,11 +1765,11 @@ def main():
         /* Hide bottom-right Streamlit branding */
         .stDeployButton {display: none;}
         /*.st-emotion-cache-zq5wmm {display: none;}*/  /* Updated Streamlit version class for deploy button */
-        ._link_gzau3_10 {{display: none;}}
-        [data-testid="appCreatorAvatar"]{display: none;}
+        /*._link_gzau3_10 {{display: none;}}*/
+        /*[data-testid="appCreatorAvatar"]{display: none;}*/
 
         /* Optional: Hide top status bar completely */
-        .st-emotion-cache-1dp5vir.ezrtsby0 {display: none;}
+        /*.st-emotion-cache-1dp5vir.ezrtsby0 {display: none;}*/
         
         
         
