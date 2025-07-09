@@ -14,7 +14,7 @@ st.sidebar.markdown(
     <style>
 
     /* Hide top-right hamburger menu and fullscreen option */
-    #MainMenu {visibility: hidden;}
+    /*#MainMenu {visibility: hidden;}*/
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
