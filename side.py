@@ -16,7 +16,7 @@ st.sidebar.markdown(
     /* Hide top-right hamburger menu and fullscreen option */
     /*#MainMenu {visibility: hidden;}*/
     footer {visibility: hidden;}
-    header {visibility: hidden;}
+    /*header {visibility: hidden;}*/
     
 
     /* Hide bottom-right Streamlit branding */
