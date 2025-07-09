@@ -84,29 +84,69 @@ def get_base64(file_path):
 def login():
     col1,col2,col3=st.columns([1,2,1],vertical_alignment="center")
     with col1:
-        st.markdown("""
+        st.markdown(
+            """
             <style>
- 
-            .custom-title {
-                transform: rotate(0deg);
-                font-family: 'Poppins', sans-serif;
-                font-size: 36px;
-                color: white;
-                text-align: center;
-                text-shadow: 0 0 10px rgba(0, 0, 0, 1.9), 0 0 20px blue, 0 0 30px green;
-                background-color: 0;
-                padding: 0px;
-                border-radius: 0px;
-                margin-top: 0;
-                margin-bottom: 0;
+            @keyframes fadeSlideIn {
+                0% {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                100% {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
-                    
-                                </style>
-        """, unsafe_allow_html=True)
 
-        st.html("""<h2 class="custom-title">Swiftcom </h2>""")                    
+            @keyframes colorPulse {
+                0% {
+                    color: #008CBA;
+                }
+                50% {
+                    color: #00BFFF;
+                }
+                100% {
+                    color: #008CBA;
+                }
+            }
 
+            .logo-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: Center;
+                animation: fadeSlideIn 1s ease-out forwards;
+                line-height: .8;  /* tight spacing */
+                margin-bottom: 10px;
+                
+            }
 
+            .logo-swiftcom {
+                font-size: 36px;
+                font-weight: bold;
+                color: #125078;
+                text-shadow: 1px 1px 2px #00000040;
+                margin: 0;
+                padding: 0;
+            }
+
+            .logo-dms {
+                font-size: 20px;
+                font-weight: 600;
+                letter-spacing: 3px;
+                animation: colorPulse 2s infinite;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <div class='logo-container'>
+                <div class='logo-swiftcom'>SWIFTCOM</div>
+                <div class='logo-dms'>    DMS</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
     with col2:
 
 
@@ -221,42 +261,80 @@ def show_sidebar():
     user_role = st.session_state.get("user_role")
     with st.sidebar:
 
-        st.markdown("""
+        st.markdown(
+            """
             <style>
-            .custom-title {
-                color: darkred;    
-                font-family: 'Poppins', sans-serif;
-                font-size: 42px;
+            @keyframes fadeSlideIn {
+                0% {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                100% {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes colorPulse {
+                0% {
+                    color: #008CBA;
+                }
+                50% {
+                    color: #00BFFF;
+                }
+                100% {
+                    color: #008CBA;
+                }
+            }
+
+            .logo-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: Center;
+                animation: fadeSlideIn 1s ease-out forwards;
+                line-height: .8;  /* tight spacing */
+                margin-bottom: 10px;
                 
-                text-align: center;
+            }
+
+            .logo-swiftcom {
+                font-size: 36px;
                 font-weight: bold;
-                text-shadow: 2px 2px 4px rgba(0, 0, 0, 1.2);
-                margin-bottom: 0;
-                margin-top: 0;
-                
+                color: #125078;
+                text-shadow: 1px 1px 2px #00000040;
+                margin: 0;
+                padding: 0;
             }
 
-            .custom-title2 {
-                font-family: 'Poppins', sans-serif;
-                font-size: 42px;
-                color: white;
-                text-align: center;
-                text-shadow: 0 0 10px rgba(0, 0, 0, 1.9), 0 0 20px blue, 0 0 30px green;
-                background-color: 0;
-                padding: 0px;
-                border-radius: 0px;
-                margin-top: 0;
-                
+            .logo-dms {
+                font-size: 20px;
+                font-weight: 600;
+                letter-spacing: 3px;
+                animation: colorPulse 2s infinite;
+                margin: 0;
+                padding: 0;
             }
-                    
-                                </style>
-        """, unsafe_allow_html=True)
+            </style>
 
-        #st.html("""<h2 class="custom-title">Swiftcom</h2> """)                    
-        st.html("""<h2 class="custom-title2">Swiftcom</h2>""")                    
+            <div class='logo-container'>
+                <div class='logo-swiftcom'>SWIFTCOM</div>
+                <div class='logo-dms'>    DMS</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
         #st.divider()
-        st.markdown(f"**👤 :blue[{st.session_state.get('username')}] (`{user_role}`)**")
+        st.markdown(
+            f"""
+            <div style='text-align: center; font-weight: bold;'>
+                👤 <span style='color: blue;'>{st.session_state.get('username')}</span> (<code>{user_role}</code>)
+            </div>
+            """,
+            unsafe_allow_html=True
+        )        
+        st.divider()
         st.title("📂 Navigation")
 
         # All roles: Home
@@ -326,8 +404,30 @@ def show_sidebar():
 # 🌐 PAGE CONTENT
 # -------------------------------
 def home_page():
-    st.title("🏠 Home Page")
-    st.write(f"Welcome ! **_{st.session_state.username}_** to the homepage.")
+
+    st.markdown(
+        f"""
+        
+        <h2 style='
+        background: linear-gradient(1deg, Lightblue, white);
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:black; 
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
+        🏠 Home Page 
+        </h2>
+        <h6 style='text-align: center;'> Welcome ! <span style='font-weight:bold; color: blue;'>{st.session_state.username}</span> to the Home Page</h6>
+
+        
+
+        """,
+        unsafe_allow_html=True
+    )
+
+
+
 
 # Users Management with radio options
 
@@ -1659,7 +1759,7 @@ def main():
         /* Hide top-right hamburger menu and fullscreen option */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
-        header {visibility: hidden;}
+        /*header {visibility: hidden;}*/
         
 
         /* Hide bottom-right Streamlit branding */
@@ -1670,6 +1770,12 @@ def main():
 
         /* Optional: Hide top status bar completely */
         .st-emotion-cache-1dp5vir.ezrtsby0 {display: none;}
+        
+        
+        
+        
+        
+        
         </style>
     """
 
@@ -1767,12 +1873,14 @@ def main():
             login()
             return
         else:
+            st.write("test")
             st.markdown(
             """
             <style>
             .stApp {
                 background: none !important;
             }
+
             </style>
             """,
             unsafe_allow_html=True
