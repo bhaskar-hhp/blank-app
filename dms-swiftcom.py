@@ -1766,12 +1766,14 @@ def main():
         .stDeployButton {display: none;}
         .st-emotion-cache-zq5wmm {display: none;}  /* Updated Streamlit version class for deploy button */
         ._link_gzau3_10 {{display: none;}}
-        [data-testid="appCreatorAvatar"]{display: none;}
-
+        [data-testid="appCreatorAvatar"] {display: none;}
+        [data-testid="stBaseButton-header"] {display: none;}
+        .st-emotion-cache-qt4i0q {{display: none;}}
+        .st-emotion-cache-usvq0g {{display: none;}}
         /* Optional: Hide top status bar completely */
         .st-emotion-cache-1dp5vir.ezrtsby0 {display: none;}
-        
-        
+        ._profilePreview_gzau3_63 {{display: none;}}
+        ._link_gzau3_10 {{display: none;}}
         
         
         
