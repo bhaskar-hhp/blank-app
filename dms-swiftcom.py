@@ -66,6 +66,7 @@ client = MongoClient(uri)
 db = client[db_name]  # DB group name
 dist_collection = db["Dist"]     # Collection name
 users_collection = db["users"]
+device_collection = db["devices"]
 # Initialize Firestore
 db = firestore.client()
 
@@ -257,8 +258,60 @@ st.markdown("""
         display: block;
         
             }
+
+    .stApp {
+        background: linear-gradient(10deg, lightblue, #DFECF3);    
+        background-color: #DFECF3;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    [data-testid="stHeader"]{
+        
+        background-color: rgba(0,0,0,0);
+
+    }
+
+  
     </style>
 """, unsafe_allow_html=True)
+
+
+st.markdown(
+    f"""
+    <br>
+    
+    <style>
+        
+        [data-testid="stForm"] {{
+            background: linear-gradient(135deg, lightBlue, #DBE0E2);
+            
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+            max-width: 100%;
+            margin-top: 20px    ;
+            color: Black;
+        }}
+
+        /* To make button Redesign*/            
+        [data-testid="stBaseButton-secondaryFormSubmit"]{{
+            margin: 0 auto;
+            display: block; /* to set button @ Center*/
+            background: linear-gradient(10deg, lightgreen, green);
+            box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+            padding: 8px 16px;
+            margin-top: 20px;
+            border-radius: 30px;
+            width: 50%;
+            padding: 15px;
+        }}
+        
+        
+
+    </style>
+        """,unsafe_allow_html=True
+)
+
 
 # -------------------------------
 # 🧭 SIDEBAR NAVIGATION
@@ -574,7 +627,7 @@ def users_page():
             for data in users_list:
                 with st.container():
                     #st.markdown("<div style='border: 1px solid #2196F3; border-radius: 5px; padding: 1px; margin-bottom: 10px;'>", unsafe_allow_html=True)
-                    with st.expander(f" **{data.get('full_name', 'N/A')}**  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; `💼 Brand:` **{data.get('Brand', 'N/A')}**",icon="👤"):
+                    with st.expander(f" **{data.get('full_name', 'N/A')}**  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💼 Brand: **{data.get('Brand', 'N/A')}**",icon="👤"):
                         cols = st.columns([1, 3])
                         with cols[0]:
                             if data.get("image_b64"):
@@ -586,26 +639,26 @@ def users_page():
                         with cols[1]:
                             c1, c2 = st.columns(2, gap="small")
                             with c1:
-                                st.markdown(f"**👤 `User Name:`** {data.get('name', 'N/A')}")
-                                st.markdown(f"**🧑‍💻 `Type:`** {data.get('type', 'N/A')}")
-                                st.markdown(f"**📌 `Status:`** {data.get('status', '❌ Not Set')}")
+                                st.markdown(f"**👤 User Name:** {data.get('name', 'N/A')}")
+                                st.markdown(f"**🧑‍💻 Type:** {data.get('type', 'N/A')}")
+                                st.markdown(f"**📌 Status:** {data.get('status', '❌ Not Set')}")
                             with c2:
-                                st.markdown(f"**📅 `Date of Joining:`** {data.get('doj', 'N/A')}")
-                                st.markdown(f"**📅 `Date of Birth:`** {data.get('dob', 'N/A')}")
-                                st.markdown(f"**📞 `Contact:`** {data.get('contact', 'N/A')}")
+                                st.markdown(f"**📅 Date of Joining:** {data.get('doj', 'N/A')}")
+                                st.markdown(f"**📅 Date of Birth:** {data.get('dob', 'N/A')}")
+                                st.markdown(f"**📞 Contact:** {data.get('contact', 'N/A')}")
                             st.divider()
                             c3, c4 = st.columns(2, gap="small")
                             with c3:
-                                st.markdown(f"**💼 `Work Area:`** {data.get('work_area', 'N/A')}")
-                                st.markdown(f"**💼 `Work Profile:`** {data.get('work_profile', 'N/A')}")
-                                st.markdown(f"**📧 `Email:`** {data.get('email', 'N/A')}")
-                                st.markdown(f"**📅 `Closing Date:`** {data.get('Closing_Date', 'N/A')}")
+                                st.markdown(f"**💼 Work Area:** {data.get('work_area', 'N/A')}")
+                                st.markdown(f"**💼 Work Profile:** {data.get('work_profile', 'N/A')}")
+                                st.markdown(f"**📧 Email:** {data.get('email', 'N/A')}")
+                                st.markdown(f"**📅 Closing Date:** {data.get('Closing_Date', 'N/A')}")
                             with c4:
-                                st.markdown(f"**👤 `Father Name:`** {data.get('fname', 'N/A')}")
-                                st.markdown(f"**🏠 `Address:`** {data.get('address', 'N/A')}")
+                                st.markdown(f"**👤 Father Name:** {data.get('fname', 'N/A')}")
+                                st.markdown(f"**🏠 Address:** {data.get('address', 'N/A')}")
                                 doc_url = data.get("doc_url")
                                 if doc_url:
-                                    st.link_button("📄 Open Document", doc_url)
+                                    st.link_button("📄 Open Document", doc_url,type="tertiary")
                                 else:
                                     st.write("❌ No Document URL")
                         #st.markdown("</div>", unsafe_allow_html=True)
@@ -613,7 +666,7 @@ def users_page():
         with tab1:
             active_users = [u for u in all_users if u.get("status", "").lower() == "active" and u.get("Brand") in selected_brands and u.get("type") == selected_type]
             if active_users:
-                st.write(f"🎯 {len(active_users)} `active user(s) matched with selected brands.`")
+                st.write(f"`🎯 {len(active_users)} active user(s) matched with selected brands.`")
                 show_users(active_users)
             else:
                 st.info("No active users found.")
@@ -1261,40 +1314,36 @@ def devices_page():
         """,
         unsafe_allow_html=True
     )
+
+
+        # Form Design CSS
     #--------------------------------------------------------------------
     tab_view, tab_add, tab_add_bulk, tab_delete,tab_delete_all, tab_update = st.tabs(["📱Existing Device  ", " ➕Add Device  ", " 📦➕Add Bulk Device.csv   ",  " 🗑️Delete  ", " 📦🗑️Delete All   ", "  ✏️Update  "])
     with tab_view:
-                
+        
         st.subheader("📱 Existing Devices")
 
-        # Fetch devices from Firestore (simulate)
-        docs = db.collection("device").get()
-        user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
+        docs = list(device_collection.find())
+        user_data = [{**doc, "doc_id": str(doc["_id"])} for doc in docs]
 
         if user_data:
             df = pd.DataFrame(user_data)
-            
-            # Get unique brand and type options
             brand_options = sorted(df["brand"].dropna().unique())
             type_options = sorted(df["type"].dropna().unique())
-            
-            # Show filters at the top
+
             selected_brands = st.multiselect("Filter by Brand", brand_options, default=brand_options)
             selected_types = st.multiselect("Filter by Type", type_options, default=type_options)
-            
-            # Filter dataframe based on selections
+
             filtered_df = df[
                 (df["brand"].isin(selected_brands)) &
                 (df["type"].isin(selected_types))
             ]
-            
-            # Display dataframe container below filters
+
             container = st.container()
-            
-            column_order = ["brand", "type", "model", "article", "stock"]
+            column_order = ["brand", "type", "model"]
             ordered_columns = [col for col in column_order if col in filtered_df.columns] + \
                             [col for col in filtered_df.columns if col not in column_order and col != "doc_id"]
-            
+
             if not filtered_df.empty:
                 container.dataframe(filtered_df[ordered_columns])
             else:
@@ -1304,92 +1353,58 @@ def devices_page():
 
 
 
+
+    #-------------            
+
+
+
     with tab_add:
-        # Simulated Firestore fetch
-        docs = db.collection("device").get()
-        user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
+        
+        docs = list(device_collection.find())
+        user_data = [{**doc, "doc_id": str(doc["_id"])} for doc in docs]
         df = pd.DataFrame(user_data)
 
-        # Initialize session state for new entries
-        #if "new_brand" not in st.session_state:
-        #    st.session_state.new_brand = ""
-        #if "new_type" not in st.session_state:
-        #    st.session_state.new_type = ""
-        col1, col2= st.columns(2,vertical_alignment="top",gap="small",border=True)
+        col1, col2 = st.columns(2,vertical_alignment="top",gap="small",border=True)
         
-        with col1:  
-            if not df.empty: 
+        with col1:
+            if not df.empty:
                 brand_options = sorted(df["brand"].dropna().unique().tolist())
                 with st.popover("Add New Brand"):
-                    new_brand=st.text_input("Enter New Brand Name",key="new_brand_input").strip().upper()
+                    new_brand = st.text_input("Enter New Brand Name", key="new_brand_input").strip().upper()
                     if new_brand:
                         brand_options.append(new_brand)
                         col1.markdown(f"`{new_brand} `: Added in the Brand list")
-                      
 
-        with col2:            
-            if not df.empty: 
+        with col2:
+            if not df.empty:
                 type_options = sorted(df["type"].dropna().unique().tolist())
-                with st.popover("Add New Type"):        
-                    new_type = st.text_input("Enter New Type",key="new_type_input").strip().upper()
+                with st.popover("Add New Type"):
+                    new_type = st.text_input("Enter New Type", key="new_type_input").strip().upper()
                     if new_type:
                         type_options.append(new_type)
                         col2.markdown(f"`{new_type} `: Added in the type list")
-    
-            
 
-
-
-        # Add "New Brand" and "Add New" options
-   
         with st.form("add_device_form"):
-            # --- Brand Selection ---
             st.subheader(" ➕ Add Device")
-            if not df.empty:
-                selected_brand = st.selectbox("Select Brand", brand_options)
-            else:
-                selected_brand = st.text_input("Enter Brand").strip().upper()
-
-            brand = selected_brand
-
-            # --- Type Selection ---
-            if not df.empty:
-                selected_type = st.selectbox("Select Type", type_options)
-            else:
-                selected_type = st.text_input("Enter Type").strip().upper()
-
-
-            dev_type = selected_type
-
-            # Other Fields
-            article = st.text_input("Article Number (if any)")
+            selected_brand = st.selectbox("Select Brand", brand_options) if not df.empty else st.text_input("Enter Brand").strip().upper()
+            selected_type = st.selectbox("Select Type", type_options) if not df.empty else st.text_input("Enter Type").strip().upper()
             model = st.text_input("Model")
-            stock = st.text_input("Stock", "0")
 
-            # Submit Button
             submitted = st.form_submit_button("Add Device")
-
             if submitted:
-                if not brand or not dev_type:
+                if not selected_brand or not selected_type:
                     st.warning("Please enter both a valid Brand and Type.")
                 else:
-                    # Here you can write to Firestore or show results
                     new_device = {
-                        "brand": brand,
-                        "type": dev_type,
-                        "article": article,
+                        "brand": selected_brand,
+                        "type": selected_type,
                         "model": model,
-                        "stock": stock
                     }
-                    db.collection("device").add(new_device)  # Uncomment to add to Firestore
+                    device_collection.insert_one(new_device)
                     st.toast("Device added successfully!")
-                    new_brand=None
-                    new_type=None
-                    
-                    #st.session_state["new_brand_input"] = ""
-                    #st.session_state["new_type_input"] = ""
-                    #st.json(new_device)
-                    #st.rerun()
+                    st.rerun()
+
+        #----------------
     
     with tab_add_bulk:
         st.subheader("📦 Bulk Add Devices")
@@ -1974,6 +1989,7 @@ def main():
             <style>
             .stApp {
                 background: none !important;
+                
             }
 
             </style>
