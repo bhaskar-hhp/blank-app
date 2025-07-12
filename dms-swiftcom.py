@@ -124,8 +124,8 @@ def login():
             .logo-swiftcom {
                 font-size: 36px;
                 font-weight: bold;
-                color: #125078;
-                text-shadow: 1px 1px 2px #00000040;
+                color: #b0160f;
+                text-shadow: 3px 2px 2px #00000040;
                 margin: 0;
                 padding: 0;
             }
@@ -240,17 +240,23 @@ st.markdown("""
     div.stButton > button {
         width: 100%;
         height: 45px;
-        font-size: 11px;
+        font-size: 10px;
+        background: linear-gradient(0deg, #062134, #8fc3e7);
         margin-bottom: 8px;
-        background-color: #125078;
+        
         color: white;
         border: none;
         border-radius: 10px;
     }
 
     div.stButton > button:hover {
-        background-color: #505266;
+        background: linear-gradient(180deg, green, lightgreen);
     }
+            
+    div.stVerticalBlock {
+        display: block;
+        
+            }
     </style>
 """, unsafe_allow_html=True)
 
@@ -301,8 +307,8 @@ def show_sidebar():
             .logo-swiftcom {
                 font-size: 36px;
                 font-weight: bold;
-                color: #125078;
-                text-shadow: 1px 1px 2px #00000040;
+                color: #b0160f;
+                text-shadow: 3px 2px 2px #00000040;
                 margin: 0;
                 padding: 0;
             }
@@ -419,6 +425,7 @@ def home_page():
         🏠 Home Page 
         </h2>
         <h6 style='text-align: center;'> Welcome ! <span style='font-weight:bold; color: blue;'>{st.session_state.username}</span> to the Home Page</h6>
+        <br>
 
         
 
@@ -440,9 +447,16 @@ def users_page():
     #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
-            📝 User Management
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
+        📝 User Management
         </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
@@ -711,9 +725,16 @@ def distributors_page():
         #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
-            📊 Distributors
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
+        📊 Distributors
         </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
@@ -948,9 +969,16 @@ def distributors_ledgers_page():
     #---------------------- individual page title------------------
     st.markdown(
         """
-            <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white; text-align: center'>
-            📒 Distributors Ledger Viewer
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
+        📒 Distributors Ledger Viewer
             </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
@@ -1171,13 +1199,22 @@ def order_page():
         #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white; 
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
             📦 Order Management
         </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
+
+    
 
 # func for add device
 def add_device(data):
@@ -1211,9 +1248,16 @@ def devices_page():
         #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
             📱 Devices
         </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
@@ -1555,9 +1599,16 @@ def logistics_page():
     #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
             🚚 Logistics
         </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
@@ -1570,9 +1621,16 @@ def utility_page():
         #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
             🛠️ Utility
         </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
@@ -1584,9 +1642,16 @@ def attendance_page():
         #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
             🕒 Attendance
         </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
@@ -1601,9 +1666,16 @@ def Change_Password_page():
         #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
             🔐 Change Password
         </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
@@ -1635,9 +1707,16 @@ def update_order_page():
         #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
             📦 Update Order
         </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
@@ -1654,9 +1733,16 @@ def att_managment_page():
         #---------------------- individual page title------------------
     st.markdown(
         """
-        <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white;'>
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
             🕒 Attendance Managment
         </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
@@ -1670,9 +1756,16 @@ def ledger_page():
         #---------------------- individual page title------------------
     st.markdown(
         """
-            <h5 style='background-color:#125078; padding:10px; border-radius:10px; color:white; text-align: center'>
-            📒 Distributors Ledger Viewer
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
+        📒 Distributors Ledger Viewer
             </h5>
+        <br>
         """,
         unsafe_allow_html=True
     )
