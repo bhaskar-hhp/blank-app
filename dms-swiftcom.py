@@ -286,14 +286,22 @@ div.st-emotion-cache-1d8vwwt {
            
             } 
                  
-
+/*for local container*/
 div.stColumn.st-emotion-cache-1ot6vu8.e1lln2w82 {
             box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
             margin-top: 10px;
             margin-bottom: 30px;
             
             }
-  
+ 
+/*for Live app container*/ 
+div.stColumn.st-emotion-cache-1cnjs0b.eertqu01 {
+            box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+            margin-top: 10px;
+            margin-bottom: 30px;
+
+            }           
+
     </style>
 """, unsafe_allow_html=True)
 
