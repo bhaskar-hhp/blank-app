@@ -287,9 +287,11 @@ div.st-emotion-cache-1d8vwwt {
             } 
                  
 
-.dvn-scroller.stDataFrameGlideDataEditor{
+[data-testid="stColumn"] {
             box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
-        
+            margin-top: 10px;
+            margin-bottom: 30px;
+            
             }
   
     </style>
