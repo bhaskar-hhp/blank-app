@@ -350,31 +350,34 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             border-style: none;
             }
 
-/*for local container summary "🎯 2 active user(s) matched with selected brands."         
+/*for local container summary "🎯 2 active user(s) matched with selected brands.*/         
 .st-emotion-cache-ao4qku.e1rzn78k0 {
             display: flex;
             justify-content: center;
-            background: linear-gradient(180deg, white, white);
+            background: linear-gradient(180deg, #0a5668, #498fa0);
             box-shadow: 1px 1px 5px rgba(1, 0, 0, .2);
             margin-top: 0px;
             margin-bottom: 30px;
-            border-radius: 1px;
+            border-radius: 10px;
             align-items: center;
-
+            color : white;
+            padding: 1px;
             }
 
 
-/*for Live App container summary "🎯 2 active user(s) matched with selected brands."         
+/*for Live App container summary "🎯 2 active user(s) matched with selected brands.*/         
 .st-emotion-cache-uzemrq.e1chbk300 {
             display: flex;
             justify-content: center;
-            background: linear-gradient(180deg, white, white);
+            background: linear-gradient(180deg, #0a5668, #498fa0);
             box-shadow: 1px 1px 5px rgba(1, 0, 0, .2);
             margin-top: 0px;
             margin-bottom: 30px;
-            border-radius: 1px;
+            border-radius: 10px;
             align-items: center;
-
+            color : white;
+            padding: 1px;
+            }
             }
 
 
