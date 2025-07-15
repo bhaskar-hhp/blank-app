@@ -264,6 +264,9 @@ st.markdown("""
         background-color: #DFECF3;
         font-family: 'Arial', sans-serif;
     }
+
+            
+
     
     [data-testid="stHeader"]{
         
@@ -271,6 +274,23 @@ st.markdown("""
 
     }
 
+div.st-emotion-cache-1d8vwwt {
+            background: linear-gradient(135deg, white, white);
+            
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+            max-width: 100%;
+            margin-top: 20px;
+            color: Black;
+           
+            } 
+                 
+
+.dvn-scroller.stDataFrameGlideDataEditor{
+            box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        
+            }
   
     </style>
 """, unsafe_allow_html=True)
@@ -1318,7 +1338,7 @@ def devices_page():
 
         # Form Design CSS
     #--------------------------------------------------------------------
-    tab_view, tab_add, tab_add_bulk, tab_delete,tab_delete_all, tab_update = st.tabs(["📱Existing Device  ", " ➕Add Device  ", " 📦➕Add Bulk Device.csv   ",  " 🗑️Delete  ", " 📦🗑️Delete All   ", "  ✏️Update  "])
+    tab_view, tab_add, tab_add_bulk, tab_delete,tab_delete_all, = st.tabs(["📱Existing Device  ", " ➕Add Device  ", " 📦➕Add Bulk Device.csv   ",  " 🗑️Delete  ", " 📦🗑️Delete All   "])
     with tab_view:
         
         st.subheader("📱 Existing Devices")
@@ -1331,15 +1351,19 @@ def devices_page():
             brand_options = sorted(df["brand"].dropna().unique())
             type_options = sorted(df["type"].dropna().unique())
 
-            selected_brands = st.multiselect("Filter by Brand", brand_options, default=brand_options)
-            selected_types = st.multiselect("Filter by Type", type_options, default=type_options)
+            col_brand, col_type=st.columns(2,gap="large",border=True)
+            with col_brand:
+                selected_brands = st.multiselect("Filter by Brand", brand_options, default=brand_options)
+            with col_type:
+                selected_types = st.multiselect("Filter by Type", type_options, default=type_options)
 
             filtered_df = df[
                 (df["brand"].isin(selected_brands)) &
                 (df["type"].isin(selected_types))
             ]
-
-            container = st.container()
+            #st.divider()
+            container = st.container(border=True)
+           
             column_order = ["brand", "type", "model"]
             ordered_columns = [col for col in column_order if col in filtered_df.columns] + \
                             [col for col in filtered_df.columns if col not in column_order and col != "doc_id"]
@@ -1406,61 +1430,54 @@ def devices_page():
 
         #----------------
     
+    def add_device(data):
+        device_collection.insert_one(data)
+
     with tab_add_bulk:
         st.subheader("📦 Bulk Add Devices")
-        st.markdown("**CSV format:** `article`,`brand`,`type`,`model`,`stock`")
+        col_down, col_up=st.columns(2,gap="large",border=True)
+        with col_down:
+            st.markdown("**CSV format:** `brand`,`type`,`model`")
+            template_df = pd.DataFrame(columns=["brand", "type", "model"])
+            csv = template_df.to_csv(index=False).encode("utf-8")
+            st.download_button("📥 Download CSV Template", csv, "device_template.csv", "text/csv",type="primary")
 
-        # Download template
-        template_df = pd.DataFrame(columns=["article", "brand", "type", "model", "stock"])
-        csv = template_df.to_csv(index=False).encode("utf-8")
-        st.download_button("📥 Download CSV Template", csv, "device_template.csv", "text/csv")
+        with col_up:
+            if "bulk_upload_done" not in st.session_state:
+                st.session_state.bulk_upload_done = False
+            file = st.file_uploader("Upload your CSV", type="csv",)
 
-        # Initialize session state
-        if "bulk_upload_done" not in st.session_state:
-            st.session_state.bulk_upload_done = False
-
-        # Upload filled CSV
-        file = st.file_uploader("Upload your CSV", type="csv")
-
-        # Show upload button only if file is uploaded and not already processed
         if file and not st.session_state.bulk_upload_done:
             try:
                 df = pd.read_csv(file)
-                required_columns = {"article", "brand", "type", "model", "stock"}
+                required_columns = {"brand", "type", "model"}
 
                 if required_columns.issubset(df.columns):
                     with st.spinner("Adding devices..."):
                         for _, row in df.iterrows():
                             data = row.to_dict()
-                            try:
-                                data["stock"] = int(data["stock"])
-                            except:
-                                data["stock"] = 0
                             add_device(data)
 
                     st.success("✅ Devices added successfully.")
                     st.dataframe(df)
-                    st.session_state.bulk_upload_done = True  # Set flag to prevent reprocessing
+                    st.session_state.bulk_upload_done = True
                 else:
                     st.error("❌ CSV must have columns: article, brand, type, model, stock")
             except Exception as e:
                 st.error(f"❌ Error reading CSV: {e}")
 
-        # Optionally allow user to reset for a new upload
         if st.session_state.bulk_upload_done:
             if st.button("🔄 Upload Another File"):
                 st.session_state.bulk_upload_done = False
-
-
+#--------------------------------------------
+    from bson import ObjectId
 
     with tab_delete:
-        # Fetch device data
-        docs = db.collection("device").get()
-        user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
+        docs = list(device_collection.find())
+        user_data = [{**doc, "doc_id": str(doc["_id"])} for doc in docs]
         df = pd.DataFrame(user_data)
 
         st.header(" 🗑️ Delete Device")
-
         if df.empty:
             st.info("No devices available.")
         else:
@@ -1478,133 +1495,56 @@ def devices_page():
             models = sorted(model_df["model"].dropna().unique())
             selected_model = st.selectbox("Select Model", models)
 
-            # Step 4: Filter by Brand + Type + Model → article
-            article_df = model_df[model_df["model"] == selected_model]
-            article = sorted(article_df["article"].dropna().unique())
-            selected_article = st.selectbox("Select Article :", article)
-
-            # Step 5: Filter by Brand + Type + Model + Color → Spec
-            #spec_df = color_df[color_df["color"] == selected_color]
-            #specs = sorted(spec_df["spec"].dropna().unique())
-            #selected_spec = st.selectbox("Select Specification", specs)
-
             # Final match
-            final_df = article_df[article_df["article"] == selected_article]
+            final_df = model_df[model_df["model"] == selected_model]
 
             if not final_df.empty:
                 doc_id = final_df.iloc[0]["doc_id"]
-                st.markdown(f"**Ready to delete:** `{selected_brand} | {selected_type} | {selected_model}  {selected_article}`")
-
+                st.markdown(f"**Ready to delete:** `{selected_brand} | {selected_type} | {selected_model}`")
                 if st.button("Delete Device"):
-                    db.collection("device").document(doc_id).delete()
+                    device_collection.delete_one({"_id": ObjectId(doc_id)})
                     st.success("Device deleted successfully!")
                     st.rerun()
             else:
-                st.warning("Matching device or article not found.")
+                st.warning("Matching device not found.")
 
+#-----------------------------------------------------------------
+
+    def get_unique_values():
+        docs = list(device_collection.find())
+        brands = sorted(set(doc.get("brand", "") for doc in docs if doc.get("brand")))
+        types = sorted(set(doc.get("type", "") for doc in docs if doc.get("type")))
+        return brands, types
+
+    def delete_filtered_devices(selected_brands, selected_types):
+        query = {}
+        if selected_brands:
+            query["brand"] = {"$in": selected_brands}
+        if selected_types:
+            query["type"] = {"$in": selected_types}
+        result = device_collection.delete_many(query)
+        return result.deleted_count
 
     with tab_delete_all:
-        # --- Delete filtered devices ---
-        def delete_filtered_devices(selected_brands, selected_types):
-            docs = db.collection("device").stream()
-            count = 0
-            for doc in docs:
-                data = doc.to_dict()
-                brand_match = not selected_brands or data.get("brand") in selected_brands
-                type_match = not selected_types or data.get("type") in selected_types
-                if brand_match and type_match:
-                    doc.reference.delete()
-                    count += 1
-            return count
-
-        # --- UI ---
         st.subheader("🗑️ Delete Devices  by Filter")
-
         brands, types = get_unique_values()
-
-        # Filters
         col1, col2 = st.columns(2)
         with col1:
             selected_brands = st.multiselect("Select Brand(s)", brands)
         with col2:
             selected_types = st.multiselect("Select Type(s)", types)
 
-        # Show selected filters
         st.markdown(f"**Selected brands:** `{', '.join(selected_brands) or 'All'}`")
         st.markdown(f"**Selected types:** `{', '.join(selected_types) or 'All'}`")
 
-        # Delete button
         if st.button("🚨 Delete Filtered Devices"):
             with st.spinner("Deleting..."):
                 deleted_count = delete_filtered_devices(selected_brands, selected_types)
             st.success(f"✅ Deleted {deleted_count} matching device(s).")
             time.sleep(5)
             st.rerun()
+#-------------------------------------------------------------------------------------------------
 
-
-    with tab_update:
-        # Load data from Firestore
-        docs = db.collection("device").get()
-        user_data = [{**doc.to_dict(), "doc_id": doc.id} for doc in docs]
-        df = pd.DataFrame(user_data)
-
-        st.header(" ✏️ Update Device")
-
-        if df.empty:
-            st.info("No devices available.")
-        else:
-            # Step 1: Select Brand
-            brands = sorted(df["brand"].dropna().unique())
-            selected_brand = st.selectbox("Select Brand", brands, key="brand_select")
-
-            # Step 2: Filter by Brand → Type
-            type_df = df[df["brand"] == selected_brand]
-            types = sorted(type_df["type"].dropna().unique())
-            selected_type = st.selectbox("Select Type", types, key="type_select")
-
-            # Step 3: Filter by Brand + Type → Model
-            model_df = type_df[type_df["type"] == selected_type]
-            models = sorted(model_df["model"].dropna().unique())
-            selected_model = st.selectbox("Select Model", models, key="model_select")
-
-            # Step 4: Filter by Brand + Type + Model → Color
-            #color_df = model_df[model_df["model"] == selected_model]
-            #colors = sorted(color_df["color"].dropna().unique())
-            #selected_color = st.selectbox("Select Color", colors, key="color_select")
-
-            # Step 5: Filter by Brand + Type + Model + Color → Spec
-            #spec_df = color_df[color_df["color"] == selected_color]
-            #specs = sorted(spec_df["spec"].dropna().unique())
-            #selected_spec = st.selectbox("Select Specification", specs, key="spec_select")
-
-            # Final filtered record
-            final_df = model_df[model_df["model"] == selected_model]
-
-            if not final_df.empty:
-                record = final_df.iloc[0]
-                doc_id = record["doc_id"]
-
-                st.markdown("### Edit Device Fields")
-
-                # Editable input fields with unique keys
-                new_brand = st.text_input("Brand", value=record["brand"], key="edit_brand")
-                new_type = st.text_input("Type", value=record["type"], key="edit_type")
-                new_model = st.text_input("Model", value=record["model"], key="edit_model")
-                new_article = st.text_input("Article", value=record["article"], key="edit_article")
-                new_stock = st.text_area("Stock", value=record["stock"], key="edit_stock")
-
-                if st.button("Update Device", key="update_button"):
-                    db.collection("device").document(doc_id).update({
-                        "brand": new_brand.strip().upper(),
-                        "type": new_type.strip().capitalize(),
-                        "model": new_model.strip(),
-                        "article": new_article.strip(),
-                        "stock": new_stock.strip()
-                    })
-                    st.success("Device updated successfully!")
-                    st.rerun()
-            else:
-                st.warning("Matching device not found.")
         
 # ---------------------------------------------------------------Logistics Page----------------------
 def logistics_page():
