@@ -300,7 +300,56 @@ div.stColumn.st-emotion-cache-1cnjs0b.eertqu01 {
             margin-top: 10px;
             margin-bottom: 30px;
 
-            }           
+            } 
+
+/*for Live app container*/ 
+div.st-emotion-cache-1clstc5.eah1tn14{
+            background: linear-gradient(135deg, lightblue, white);
+            box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+            margin-top: 10px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            
+            } 
+            
+/*for local container*/
+div.st-emotion-cache-1clstc5.e1kosxz24  {
+            background: linear-gradient(135deg, lightblue, white);
+            box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+            margin-top: 10px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+           }                          
+
+/*for Live app container user name row-expander*/             
+.st-emotion-cache-4rp1ik.eah1tn13 {
+            background: linear-gradient(0deg, lightblue, white);
+            box-shadow: 1px 1px 5px rgba(1, 0, 0, .2);
+            margin-top: 0px;
+            margin-bottom: 0px;
+            border-radius: 10px;
+            }
+
+/*for local container user name row-expander*/           
+.st-emotion-cache-4rp1ik.e1kosxz23 {
+            background: linear-gradient(0deg, lightblue, white);
+            box-shadow: 1px 1px 5px rgba(1, 0, 0, .2);
+            margin-top: 0px;
+            margin-bottom: 0px;
+            border-radius: 10px;
+            
+             }
+            
+/*for local container user name row-expander-backborder*/  
+.st-emotion-cache-1h9usn1 {
+            border-style: none;
+            }
+
+/*for Live app container user name row-expander-backborder*/  
+.st-emotion-cache-1h9usn1 {
+            border-style: none;
+            }
+            
 
     </style>
 """, unsafe_allow_html=True)
@@ -688,7 +737,7 @@ def users_page():
                                 st.markdown(f"**🏠 Address:** {data.get('address', 'N/A')}")
                                 doc_url = data.get("doc_url")
                                 if doc_url:
-                                    st.link_button("📄 Open Document", doc_url,type="tertiary")
+                                    st.link_button("📄 Open Document", doc_url,type="primary")
                                 else:
                                     st.write("❌ No Document URL")
                         #st.markdown("</div>", unsafe_allow_html=True)
