@@ -326,7 +326,7 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             background: linear-gradient(0deg, lightblue, white);
             box-shadow: 1px 1px 5px rgba(1, 0, 0, .2);
             margin-top: 0px;
-            margin-bottom: 0px;
+            margin-bottom: 3px;
             border-radius: 10px;
             }
 
@@ -335,7 +335,7 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             background: linear-gradient(0deg, lightblue, white);
             box-shadow: 1px 1px 5px rgba(1, 0, 0, .2);
             margin-top: 0px;
-            margin-bottom: 0px;
+            margin-bottom: 3px;
             border-radius: 10px;
             
              }
