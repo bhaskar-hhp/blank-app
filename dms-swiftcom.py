@@ -381,10 +381,12 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
 
 /*for local App & Live App both - User ID PIC container*/  
 .st-emotion-cache-7czcpc.evl31sl1 {
-            margin-top: 70px;
-            margin-left: 50px;
+            margin-top: 65px;
+            margin-left: 30px;
             box-shadow: 1px 1px 5px rgba(1, 0, 0, 1.2);
-            clip-path: circle(50% at 50% 50%);   
+            /*clip-path: circle(50% at 50% 50%); */  
+            padding: 5px;
+            border-radius: 10px;
             }
 
 
@@ -734,12 +736,13 @@ def users_page():
         all_users = list(users_collection.find())
 
         brand_options = sorted(set(user.get("Brand", "N/A") for user in all_users if user.get("Brand")))
-        col_brand, col_type=st.columns(2)
+        col_brand, col_type=st.columns(2,border=True)
         with col_brand:
             selected_brands = st.multiselect("Select Brands to filter", brand_options, default=brand_options)
         with col_type:
             selected_type = st.selectbox("Select Type to filter", ["Admin", "Back Office", "Standard", "Guest"])
-
+        
+        
         tab1, tab2, tab3 = st.tabs(["🟢 Active Users", "🔴 Inactive Users", "❔ No Status Users"])
 
         def show_users(users_list):
