@@ -243,8 +243,8 @@ st.markdown("""
         height: 45px;
         font-size: 10px;
         background: linear-gradient(0deg, #062134, #8fc3e7);
-        margin-bottom: 8px;
-        
+        margin-bottom: 5px;
+        margin-top: 10px;
         color: white;
         border: none;
         border-radius: 10px;
@@ -326,7 +326,7 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             background: linear-gradient(0deg, lightblue, white);
             box-shadow: 1px 1px 5px rgba(1, 0, 0, .2);
             margin-top: 0px;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
             border-radius: 10px;
             }
 
@@ -372,13 +372,23 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             background: linear-gradient(180deg, #0a5668, #498fa0);
             box-shadow: 1px 1px 5px rgba(1, 0, 0, .2);
             margin-top: 0px;
-            margin-bottom: 30px;
-            border-radius: 10px;
+            margin-bottom: 30px;            
             align-items: center;
             color : white;
             padding: 1px;
             }
+           
+
+/*for local App & Live App both - User ID PIC container*/  
+.st-emotion-cache-7czcpc.evl31sl1 {
+            margin-top: 70px;
+            margin-left: 50px;
+            box-shadow: 1px 1px 5px rgba(1, 0, 0, 1.2);
+            clip-path: circle(50% at 50% 50%);   
             }
+
+
+
 
 
     </style>
