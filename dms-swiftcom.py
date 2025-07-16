@@ -390,7 +390,34 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             }
 
 
-
+/*for local App  - device delete Button*/
+.st-emotion-cache-i7f4fz.eacrzsi1 {
+            width: 100%;
+            height: 45px;
+            font-size: 10px;
+            background: linear-gradient(0deg, red, #0a5668);
+            margin-bottom: 5px;
+            margin-top: 10px;
+            color: white;
+            border: none;
+            border-radius: 10px;
+             
+            }
+/*for live web App  - device delete Button*/
+.st-emotion-cache-1rwb540.e1e4lema2 {
+            width: 100%;
+            height: 45px;
+            font-size: 10px;
+            background: linear-gradient(0deg, red, #0a5668);
+            margin-bottom: 5px;
+            margin-top: 10px;
+            color: white;
+            border: none;
+            border-radius: 10px;
+             
+            
+            }
+            
 
 
     </style>
@@ -814,7 +841,7 @@ def users_page():
         all_users = list(users_collection.find())
         usernames = [u.get("name") for u in all_users]
         to_delete = st.selectbox("Select user to delete", usernames)
-        if st.button("Delete"):
+        if st.button("Delete",type="primary"):
             users_collection.delete_one({"name": to_delete})
             st.success(f"Deleted user {to_delete}.")
 
@@ -1119,7 +1146,7 @@ def distributors_page():
         
         if dist_name:
             selected = st.selectbox("Select Distributor to Delete", dist_name, index=None, placeholder="- Select Name -")
-            if st.button("Delete"):
+            if st.button("Delete",type="primary"):
                 dist_collection.delete_one({"name": selected})
             
                 st.success(f"Distributor deleted : '**{selected}**' ")
@@ -1449,7 +1476,7 @@ def devices_page():
         user_data = [{**doc, "doc_id": str(doc["_id"])} for doc in docs]
 
         if user_data:
-            df = pd.DataFrame(user_data)
+            df = pd.DataFrame(user_data).drop(columns=["_id"], errors="ignore")
             brand_options = sorted(df["brand"].dropna().unique())
             type_options = sorted(df["type"].dropna().unique())
 
@@ -1512,8 +1539,8 @@ def devices_page():
 
         with st.form("add_device_form"):
             st.subheader(" ➕ Add Device")
-            selected_brand = st.selectbox("Select Brand", brand_options) if not df.empty else st.text_input("Enter Brand").strip().upper()
-            selected_type = st.selectbox("Select Type", type_options) if not df.empty else st.text_input("Enter Type").strip().upper()
+            selected_brand = st.selectbox("Select Brand", brand_options,index=None, placeholder="- Select brand - ") if not df.empty else st.text_input("Enter Brand").strip().upper()
+            selected_type = st.selectbox("Select Type", type_options, index=None, placeholder="- Select Type - ") if not df.empty else st.text_input("Enter Type").strip().upper()
             model = st.text_input("Model")
 
             submitted = st.form_submit_button("Add Device")
@@ -1539,7 +1566,7 @@ def devices_page():
         st.subheader("📦 Bulk Add Devices")
         col_down, col_up=st.columns(2,gap="large",border=True)
         with col_down:
-            st.markdown("**CSV format:** `brand`,`type`,`model`")
+            st.markdown("**CSV format:** `brand, type, model`")
             template_df = pd.DataFrame(columns=["brand", "type", "model"])
             csv = template_df.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download CSV Template", csv, "device_template.csv", "text/csv",type="primary")
@@ -1603,7 +1630,7 @@ def devices_page():
             if not final_df.empty:
                 doc_id = final_df.iloc[0]["doc_id"]
                 st.markdown(f"**Ready to delete:** `{selected_brand} | {selected_type} | {selected_model}`")
-                if st.button("Delete Device"):
+                if st.button("Delete Device",type="primary"):
                     device_collection.delete_one({"_id": ObjectId(doc_id)})
                     st.success("Device deleted successfully!")
                     st.rerun()
@@ -1639,7 +1666,7 @@ def devices_page():
         st.markdown(f"**Selected brands:** `{', '.join(selected_brands) or 'All'}`")
         st.markdown(f"**Selected types:** `{', '.join(selected_types) or 'All'}`")
 
-        if st.button("🚨 Delete Filtered Devices"):
+        if st.button("🚨 Delete Filtered Devices",type="primary"):
             with st.spinner("Deleting..."):
                 deleted_count = delete_filtered_devices(selected_brands, selected_types)
             st.success(f"✅ Deleted {deleted_count} matching device(s).")
