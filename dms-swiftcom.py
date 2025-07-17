@@ -406,7 +406,7 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
 
             
 /*for live web App  - device delete Button*/
-.st-emotion-cache-bvleps {
+.st-emotion-cache-ln2sd.el4r43z1{
             width: 100%;
             height: 45px;
             font-size: 10px;
