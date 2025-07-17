@@ -403,8 +403,10 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             border-radius: 10px;
              
             }
+
+            
 /*for live web App  - device delete Button*/
-.st-emotion-cache-ln2sd {
+.st-emotion-cache-bvleps {
             width: 100%;
             height: 45px;
             font-size: 10px;
