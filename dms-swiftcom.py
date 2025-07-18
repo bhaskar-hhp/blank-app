@@ -290,7 +290,7 @@ div.st-emotion-cache-1d8vwwt {
             } 
 
 /*live st.container - view user - user names*/
-div.st-emotion-cache-4rp1ik {
+div.st-emotion-cache-o29vc0 {
             background: linear-gradient(135deg, lightblue, white);
             padding: 10px;
             border-radius: 10px;
