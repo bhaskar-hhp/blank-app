@@ -180,7 +180,10 @@ def login():
                 elif login_type == "🤝Partners":
                     if username.isdigit():
                         # do 1: username is all digits, treat as int
-                        user_data = dist_collection.find_one({"id": int(username), "pwd": password})                        
+                        user_data = dist_collection.find_one({"id": int(username), "pwd": password})
+                        if not user_data:
+                            user_data = dist_collection.find_one({"id": username, "pwd": password})  
+
                     else:
                         # do 2: username has non-digit chars
                         user_data = dist_collection.find_one({"id": username, "pwd": password})
@@ -193,9 +196,9 @@ def login():
                         
                         st.rerun()
                     else:
-                        st.error("Invalid username or password.")                                               
+                        st.error("Invalid username or password.1")                                               
                 else:
-                    st.error("Invalid username or password.")                   
+                    st.error("Invalid username or password.2")                   
             else:
                 if not username and password:
                     st.error("Invalid login type")
@@ -274,9 +277,9 @@ st.markdown("""
 
     }
 
+/*local st.container - view user - user names*/
 div.st-emotion-cache-1d8vwwt {
-            background: linear-gradient(135deg, white, white);
-            
+            background: linear-gradient(135deg, lightblue, white);
             padding: 10px;
             border-radius: 10px;
             box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
@@ -285,6 +288,18 @@ div.st-emotion-cache-1d8vwwt {
             color: Black;
            
             } 
+
+/*live st.container - view user - user names*/
+div.st-emotion-cache-4rp1ik {
+            background: linear-gradient(135deg, lightblue, white);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+            max-width: 100%;
+            margin-top: 20px;
+            color: Black;
+           
+            }
                  
 /*for local container*/
 div.stColumn.st-emotion-cache-1ot6vu8.e1lln2w82 {
@@ -302,7 +317,7 @@ div.stColumn.st-emotion-cache-1cnjs0b.eertqu01 {
 
             } 
 
-/*for Live app container*/ 
+/*for Live app container 
 div.st-emotion-cache-1clstc5.eah1tn14{
             background: linear-gradient(135deg, lightblue, white);
             box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
@@ -310,16 +325,16 @@ div.st-emotion-cache-1clstc5.eah1tn14{
             margin-bottom: 30px;
             border-radius: 10px;
             
-            } 
+            } */
             
-/*for local container*/
+/*for local container
 div.st-emotion-cache-1clstc5.e1kosxz24  {
             background: linear-gradient(135deg, lightblue, white);
             box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
             margin-top: 10px;
             margin-bottom: 30px;
             border-radius: 10px;
-           }                          
+           } /*                         
 
 /*for Live app container user name row-expander*/             
 .st-emotion-cache-4rp1ik.eah1tn13 {
@@ -330,7 +345,7 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             border-radius: 10px;
             }
 
-/*for local container user name row-expander*/           
+/*for local container user name row-expander          
 .st-emotion-cache-4rp1ik.e1kosxz23 {
             background: linear-gradient(0deg, lightblue, white);
             box-shadow: 1px 1px 5px rgba(1, 0, 0, .2);
@@ -338,19 +353,21 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             margin-bottom: 3px;
             border-radius: 10px;
             
-             }
+             }*/
             
-/*for local container user name row-expander-backborder*/  
+/*for local container user name row-expander-backborder 
 .st-emotion-cache-1h9usn1 {
             border-style: none;
             }
+*/
 
-/*for Live app container user name row-expander-backborder*/  
+/*for Live app container user name row-expander-backborder
 .st-emotion-cache-1h9usn1 {
             border-style: none;
             }
-
-/*for local container summary "🎯 2 active user(s) matched with selected brands.*/         
+*/
+            
+/*for local container summary "🎯 2 active user(s) matched with selected brands.        
 .st-emotion-cache-ao4qku.e1rzn78k0 {
             display: flex;
             justify-content: center;
@@ -362,10 +379,10 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             align-items: center;
             color : white;
             padding: 1px;
-            }
+            }*/
 
 
-/*for Live App container summary "🎯 2 active user(s) matched with selected brands.*/         
+/*for Live App container summary "🎯 2 active user(s) matched with selected brands.        
 .st-emotion-cache-uzemrq.e1chbk300 {
             display: flex;
             justify-content: center;
@@ -376,7 +393,7 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             align-items: center;
             color : white;
             padding: 1px;
-            }
+            }*/
            
 
 /*for local App & Live App both - User ID PIC container*/  
@@ -390,35 +407,7 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             }
 
 
-/*for local App  - device delete Button*/
-.st-emotion-cache-i7f4fz.eacrzsi1 {
-            width: 100%;
-            height: 45px;
-            font-size: 10px;
-            background: linear-gradient(0deg, red, #0a5668);
-            margin-bottom: 5px;
-            margin-top: 10px;
-            color: white;
-            border: none;
-            border-radius: 10px;
-             
-            }
 
-            
-/*for live web App  - device delete Button*/
-.st-emotion-cache-ln2sd {
-            width: 100%;
-            height: 45px;
-            font-size: 10px;
-            background: linear-gradient(0deg, red, #0a5668);
-            margin-bottom: 5px;
-            margin-top: 10px;
-            color: white;
-            border: none;
-            border-radius: 10px;
-             
-            
-            }
             
 
 
@@ -776,8 +765,8 @@ def users_page():
 
         def show_users(users_list):
             for data in users_list:
-                with st.container():
-                    #st.markdown("<div style='border: 1px solid #2196F3; border-radius: 5px; padding: 1px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+                with st.container(border=True):
+                    
                     with st.expander(f" **{data.get('full_name', 'N/A')}**  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💼 Brand: **{data.get('Brand', 'N/A')}**",icon="👤"):
                         cols = st.columns([1, 3])
                         with cols[0]:
@@ -817,7 +806,24 @@ def users_page():
         with tab1:
             active_users = [u for u in all_users if u.get("status", "").lower() == "active" and u.get("Brand") in selected_brands and u.get("type") == selected_type]
             if active_users:
-                st.write(f"`🎯 {len(active_users)} active user(s) matched with selected brands.`")
+                st.markdown(f"""
+                    <div style='
+                        display: flex;
+                        justify-content: center;
+                        background: linear-gradient(180deg, #0a5668, #498fa0);
+                        box-shadow: 1px 1px 5px rgba(1, 0, 0, .2);
+                        margin-top: 0px;
+                        margin-bottom: 30px;
+                        border-radius: 10px;
+                        align-items: center;
+                        color : white;
+                        padding: 1px;
+                    '>
+                        🎯 {len(active_users)} active user(s) matched with selected brands.
+                    </div>
+                """, unsafe_allow_html=True)
+                
+
                 show_users(active_users)
             else:
                 st.info("No active users found.")
@@ -1418,7 +1424,7 @@ def order_page():
     )
     #--------------------------------------------------------------------
 
-    
+    st.write("Coming soon")
 
 # func for add device
 def add_device(data):
