@@ -36,19 +36,19 @@ st.set_page_config(
 
 
 # Initialize Firebase
-if not firebase_admin._apps:
+# if not firebase_admin._apps:
 
-    try:
-        #adding Mongodb Connecttion & Collection for Firebase - Render
-        cred = credentials.Certificate("/etc/secrets/firebase_key.json")
+#     try:
+#         #adding Mongodb Connecttion & Collection for Firebase - Render
+#         cred = credentials.Certificate("/etc/secrets/firebase_key.json")
         
-    except Exception:
-        #adding Mongodb Connecttion & Collection for Firebase - Streamlit
-        cred = credentials.Certificate(dict(st.secrets["firebase"]))
+#     except Exception:
+#         #adding Mongodb Connecttion & Collection for Firebase - Streamlit
+#         cred = credentials.Certificate(dict(st.secrets["firebase"]))
 
 
-    # Initialize the Firebase app
-    firebase_admin.initialize_app(cred)
+#     # Initialize the Firebase app
+#     firebase_admin.initialize_app(cred)
 
 try:
     #adding Mongodb Connecttion & Collection for MongoDB - Render
@@ -67,9 +67,19 @@ db = client[db_name]  # DB group name
 dist_collection = db["Dist"]     # Collection name
 users_collection = db["users"]
 device_collection = db["devices"]
-# Initialize Firestore
-db = firestore.client()
+log_collection = db["logs"]
 
+# Initialize Firestore
+#db = firestore.client()
+
+
+# log file def
+def log_event(level, message):
+    log_collection.insert_one({
+        "timestamp": datetime.now(),   
+        "level": level,
+        "message": message
+    })
 
 # Convert the local image to base64
 def get_base64(file_path):
@@ -173,9 +183,11 @@ def login():
                         st.session_state.username = query.get("name", username)
                         st.session_state.user_role = query.get("type", "Standard")
                         st.success(f"Welcome, {st.session_state.username}!")
+                        log_event("LOGIN", st.session_state.username)
                         st.rerun()
                     else:
-                        st.error("Invalid username or password.")        
+                        st.error("Invalid username or password.")
+                        log_event("LOGIN", "Login Fail {username}")        
                         
                 elif login_type == "🤝Partners":
                     if username.isdigit():
@@ -193,24 +205,28 @@ def login():
                         st.session_state.username = user_data.get("name", username)
                         st.session_state.user_role = "Guest"
                         st.success(f"Welcome, {username}!")
-                        
+                        log_event("LOGIN", st.session_state.username)
                         st.rerun()
                     else:
-                        st.error("Invalid username or password.1")                                               
+                        st.error("Invalid username or password.1") 
+                        log_event("LOGIN", "Login Fail {username}")                                              
                 else:
-                    st.error("Invalid username or password.2")                   
+                    st.error("Invalid username or password.2") 
+                    log_event("LOGIN", "Login Fail {username}")                  
             else:
                 if not username and password:
                     st.error("Invalid login type")
-            
+                    log_event("LOGIN", "Login Fail {username}")
 
 # -------------------------------
 # 🚪 LOGOUT FUNCTION
 # -------------------------------
 def logout():
+    log_event("LOGOUT", st.session_state.username)
     for key in ["logged_in", "username", "user_role", "selected_page", "user_option", "dist_option"]:
         st.session_state.pop(key, None)
     st.success("Logged out successfully.")
+    
     st.rerun()
 
 # Inject custom CSS
@@ -575,6 +591,9 @@ def show_sidebar():
                     st.session_state.selected_page = "Utility"
                 if st.button("🕒 Attendance Managment"):
                     st.session_state.selected_page = "Attendance Managment"
+                if st.button("📜 Logs"):
+                    st.session_state.selected_page = "Logs"
+
 
         # Guest Only --------------------------------------------------------------------------------------
         if user_role in ["Guest"]:
@@ -2169,6 +2188,25 @@ def ledgers_page():
                 st.error("❌ 'Ledger Name' column not found in the balance data.")
 
 
+def logs():
+
+
+    logs = list(log_collection.find().sort("timestamp", -1).limit(10))
+    
+    if logs:
+        # Optional: remove MongoDB's ObjectId for cleaner display
+        for log in logs:
+            log.pop('_id', None)
+        
+        # Convert to DataFrame
+        df_logs = pd.DataFrame(logs)
+
+        # Show in Streamlit
+        st.dataframe(df_logs)
+    else:
+        st.info("No logs found")
+
+
 # -------------------------------
 # 🚀 MAIN APP
 # -------------------------------
@@ -2321,31 +2359,47 @@ def main():
     if page == "Home":
         home_page()
     elif page == "Users":
+        log_event("USER PAGE", st.session_state.username)
         users_page()
     elif page == "Distributors":
+        log_event("distributors_page", st.session_state.username)
         distributors_page()
     elif page == "Order":
+        log_event("order_page", st.session_state.username)
         order_page()
     elif page == "Logistics":
+        log_event("logistics_page", st.session_state.username)
         logistics_page()
     elif page == "Utility":
+        log_event("utility_page", st.session_state.username)
         utility_page()
     elif page == "Attendance":
+        log_event("attendance_page", st.session_state.username)
         attendance_page()
     elif page == "Change_Password":
+        log_event("Change_Password_page", st.session_state.username)
         Change_Password_page()
     elif page == "Update Order":
+        log_event("update_order_page", st.session_state.username)
         update_order_page()
     elif page == "Attendance Managment":
+        log_event("att_managment_page", st.session_state.username)
         att_managment_page()
     elif page == "Devices":
+        log_event("devices_page", st.session_state.username)
         devices_page()
     elif page == "Distributors Ledgers":
+        log_event("distributors_ledgers_page", st.session_state.username)
         distributors_ledgers_page()
     elif page == "Ledger":
+        log_event("ledger_page", st.session_state.username)
         ledger_page()
     elif page == "Ledgers":
+        log_event("ledgers_page", st.session_state.username)
         ledgers_page()
+    elif page == "Logs":
+        log_event("logs", st.session_state.username)
+        logs()
     
 
 
