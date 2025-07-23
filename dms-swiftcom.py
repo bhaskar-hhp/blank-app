@@ -2645,7 +2645,6 @@ def ledgers_page():
 
             else:
                 st.error("❌ 'LedgerName' or 'Date' column not found in the main ledger data.")
-
             # Show closing balance
             if 'Ledger Name' in bal_df.columns:
                 filtered_bal_df = bal_df[bal_df['Ledger Name'] == selected_ledger]
@@ -2680,12 +2679,12 @@ def logs():
     else:
         st.info("No logs found")
 
-    if st.button("🗑️ Delete All Logs", type="primary"):
-        if st.confirm("Are you sure you want to delete all logs? This action cannot be undone."):
+ # Delete all logs with confirmation
+    if st.checkbox("⚠️ I want to delete all logs"):
+        if st.button("🗑️ Confirm Delete All Logs", type="primary"):
             log_collection.delete_many({})
             st.success("All logs have been deleted.")
-            st.rerun()  
-
+            st.rerun()
 
 # -------------------------------
 # 🚀 MAIN APP
