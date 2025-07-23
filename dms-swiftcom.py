@@ -327,7 +327,7 @@ div.stColumn.st-emotion-cache-1ot6vu8.e1lln2w82 {
             }
 
 /*[ to be update ] live st.expander - Update Order page*/
-div.st-emotion-cache-0{
+div.st-emotion-cache-8atqhb {
             background: linear-gradient(135deg, lightblue, white);
             padding: 10px;
             border-radius: 10px;
