@@ -1593,7 +1593,7 @@ def order_page():
                             st.markdown(f"**Status:** {order['status']}")
                             st.markdown(f"**Date:** {order['date'].strftime('%Y-%m-%d %H:%M')}")
                         with col_po_right:
-                            if order['remarks']: st.badge(f"**⚠️ Remark:** {order['remarks']}", color="red")
+                            if order['status'] != "New" and order['remarks']: st.badge(f"**⚠️ Remark:** {order['remarks']}", color="red")
 
                         order_items = order.get("order", [])
                         if order_items:
@@ -1611,7 +1611,7 @@ def order_page():
                                 st.markdown("**Courier Docket:**")
                             with col_doc_right:
                                 if order['status'] != "Delivered": 
-                                    mark=st.button("Mark as Delivered" )
+                                    mark=st.button("Mark as Delivered", key=f"submit_{order_id}")
                                     if mark:
                                         order_collection.update_one(
                                     {"_id": order["_id"]},
@@ -1738,7 +1738,7 @@ def orders_page():
                             st.markdown("**Courier Docket:**")
                         with col_doc_right:
                             if order['status'] != "Delivered": 
-                                mark=st.button("Mark as Delivered" )
+                                mark=st.button("Mark as Delivered", key=f"submit_{order_id}")
                                 if mark:
                                     order_collection.update_one(
                                 {"_id": order["_id"]},
