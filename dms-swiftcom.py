@@ -68,6 +68,7 @@ dist_collection = db["Dist"]     # Collection name
 users_collection = db["users"]
 device_collection = db["devices"]
 log_collection = db["logs"]
+order_collection = db["order"]
 
 # Initialize Firestore
 #db = firestore.client()
@@ -187,7 +188,7 @@ def login():
                         st.rerun()
                     else:
                         st.error("Invalid username or password.")
-                        log_event("LOGIN", "Login Fail {username}")        
+                        log_event("LOGIN", f"Login Fail {username}")        
                         
                 elif login_type == "🤝Partners":
                     if username.isdigit():
@@ -323,6 +324,30 @@ div.stColumn.st-emotion-cache-1ot6vu8.e1lln2w82 {
             margin-top: 10px;
             margin-bottom: 30px;
             
+            }
+
+/*[ to be update ] live st.expander - Update Order page*/
+div.st-emotion-cache-0{
+            background: linear-gradient(135deg, lightblue, white);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+            max-width: 100%;
+            margin-top: 20px;
+            color: Black;
+           
+            }
+                 
+/*Local st.expander - Update Order page (it's working with most of the container*/
+div.st-emotion-cache-0 {
+            background: linear-gradient(135deg, lightblue, white);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+            max-width: 100%;
+            margin-top: 20px;
+            color: Black;
+           
             }
  
 /*for Live app container*/ 
@@ -564,9 +589,10 @@ def show_sidebar():
 
 
         # Admin , "Standard", "Guest": -----------------------------------------------------------------------------
-        if user_role in ["Admin", "Standard"]:
+        if user_role in ["Standard"]:
             if st.button("📦Purchase Order"):
                 st.session_state.selected_page = "Order"
+                
 
         # Admin , Back Office: -----------------------------------------------------------------------------
         if user_role in ["Admin", "Back Office"]:
@@ -579,12 +605,14 @@ def show_sidebar():
                     st.session_state.selected_page = "Distributors"
                 if st.button("📒 Distributors Ledgers"):
                     st.session_state.selected_page = "Distributors Ledgers"
-                if st.button("🚚 Logistics"):
-                    st.session_state.selected_page = "Logistics"
+                #if st.button("🚚 Logistics"):
+                #    st.session_state.selected_page = "Logistics"
 
         # Admin Only --------------------------------------------------------------------------------------
         if user_role in ["Admin"]:
             with st.sidebar.expander(f" **Admin Options** "):
+                if st.button("📦 Manage Order"):
+                    st.session_state.selected_page = "Manage Order"
                 if st.button("📝 Users"):
                     st.session_state.selected_page = "Users"
                 if st.button("🛠️ Utility"):
@@ -599,6 +627,8 @@ def show_sidebar():
         if user_role in ["Guest"]:
             if st.button("📝 Ledger"):
                 st.session_state.selected_page = "Ledger"
+            if st.button("📦Purchase Order"):
+                st.session_state.selected_page = "Orders"
      
         # --------------------------------------------------------------------------------------------------
 
@@ -1443,7 +1473,328 @@ def order_page():
     )
     #--------------------------------------------------------------------
 
-    st.write("Coming soon")
+    tab_new, tab_old = st.tabs(["New Order", "Existing Order"])
+
+    with tab_new:
+        username = st.session_state.username
+
+        # --- Distributor Dropdown ---
+        st.subheader("Select Distributor")
+        distributors = list(dist_collection.find({"assigned_to": username}, {"_id": 0, "name": 1}))
+        dist_names = [d["name"] for d in distributors]
+
+        selected_dist = st.selectbox("Distributor Name", dist_names, index=None, placeholder="- Select - ")
+
+        # --- Brand and Type selection ---
+        col1, col2 = st.columns(2, border=True)
+
+        with col1:
+
+            st.subheader("Select Device Filters")
+
+            brands = device_collection.distinct("brand")
+            selected_brand = st.selectbox("Brand", brands, index=None, placeholder="- Select - ")
+
+            types = device_collection.distinct("type", {"brand": selected_brand})
+            selected_type = st.selectbox("Type", types, index=None, placeholder="- Select - ")
+
+            # Filtered model list
+            models = device_collection.distinct("model", {"brand": selected_brand, "type": selected_type})
+            selected_model = st.selectbox("Model", models, index=None, placeholder="- Select - ")
+
+            qty = st.number_input("Quantity", min_value=0, step=1)
+
+            # Add items to temp session list
+            if "order_items" not in st.session_state:
+                st.session_state.order_items = []
+
+            if st.button("➕ Add Item"):
+                st.session_state.order_items.append({"model": selected_model, "qty": qty})
+                st.success(f"Added {selected_model} x {qty}")
+
+        with col2:
+            st.markdown("### 📝 Order Preview")
+            if st.session_state.order_items:
+                df = pd.DataFrame(st.session_state.order_items)
+                st.dataframe(df, use_container_width=True)
+            else:
+                st.info("No items added yet.")
+        
+        # --- Final Submission ---
+        if st.button("✅ Submit Order"):
+            if not st.session_state.order_items:
+                st.warning("Please add at least one item to submit the order.")
+            else:
+                order_doc = {
+                    "date": datetime.today(),
+                    "status": "New",
+                    "order_by": username,
+                    "dist_name": selected_dist,
+                    "order": st.session_state.order_items
+                }
+                order_collection.insert_one(order_doc)
+
+                st.success("🟢 Order Submitted Successfully!")
+            st.session_state.order_items = []  # clear for next entry
+
+    with tab_old:
+
+        today = datetime.today()
+        default_from = today - timedelta(days=30)
+        default_to = today
+
+        col1, col2 = st.columns(2, border=True)
+        with col1:
+            from_date = st.date_input("📅 From Date", value=default_from)
+        with col2:
+            to_date = st.date_input("📅 To Date", value=default_to)
+
+        # Validate range
+        if from_date > to_date:
+            st.error("⚠️ 'From Date' cannot be after 'To Date'")
+        else:
+            # Convert to datetime for MongoDB query
+            from_datetime = datetime.combine(from_date, datetime.min.time())
+            to_datetime = datetime.combine(to_date, datetime.max.time())
+
+            # MongoDB query
+            query = {
+                "order_by": username,
+                "date": {"$gte": from_datetime, "$lte": to_datetime}
+            }
+
+            orders = list(order_collection.find(query).sort("date", -1))
+
+            if not orders:
+                st.info("No orders found in selected date range.")
+            else:
+                st.markdown(f"""
+                <div style='
+                    display: flex;
+                    justify-content: center;
+                    background: linear-gradient(180deg, #0a5668, #498fa0);
+                    box-shadow: 1px 1px 5px rgba(1, 0, 0,  1.2);
+                    margin-top: 0px;
+                    margin-bottom: 30px;
+                    border-radius: 10px;
+                    align-items: center;
+                    color : white;
+                    padding: 1px;
+                '>
+                    
+                </div> 
+            """, unsafe_allow_html=True)
+                for order in orders:
+                    order_id = str(order["_id"])
+                    with st.expander(f"📦 :red[{order['date'].strftime('%Y-%m-%d %H:%M')}] | **:blue[{order['status']}]** | **{order['dist_name']}** "):
+                        col_po_left, col_po_right=st.columns(2)
+                        with col_po_left:
+                            st.markdown(f"**Distributor:** {order['dist_name']}")
+                            st.markdown(f"**Status:** {order['status']}")
+                            st.markdown(f"**Date:** {order['date'].strftime('%Y-%m-%d %H:%M')}")
+                        with col_po_right:
+                            if order['remarks']: st.badge(f"**⚠️ Remark:** {order['remarks']}", color="red")
+
+                        order_items = order.get("order", [])
+                        if order_items:
+                            df = pd.DataFrame(order_items)
+                            st.dataframe(df, use_container_width=True)
+
+                        else:
+                            st.warning("No items in this order.")
+
+                        courier_docket_filename = order.get("courier_docket_filename")    
+                        if courier_docket_filename:
+
+                            col_doc_left,col_doc_right=st.columns(2)
+                            with col_doc_left:
+                                st.markdown("**Courier Docket:**")
+                            with col_doc_right:
+                                if order['status'] != "Delivered": 
+                                    mark=st.button("Mark as Delivered" )
+                                    if mark:
+                                        order_collection.update_one(
+                                    {"_id": order["_id"]},
+                                    {"$set": {
+                                        "status": "Delivered",
+                                        
+                                        
+                                    }}
+                                )
+                                        log_event(f"Update Order : Delivered", f"{username} - {order['date'].strftime('%Y-%m-%d %H:%M')}- {order['dist_name']}")
+                                        st.toast("Order updated successfully.")
+                                        # Refresh page to reflect change
+                                        st.rerun()
+                            
+                            if order.get("courier_docket_bytes"):
+                                file_name = order.get("courier_docket_filename", "docket")
+
+                                if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                                    st.markdown("**📦 Courier Docket Image:**")
+                                    st.image(order["courier_docket_bytes"], use_container_width=True)
+                                else:
+                                    st.markdown("**📎 Courier Docket File:**")
+                                    st.download_button(
+                                        label=f"Download {file_name}",
+                                        data=order["courier_docket_bytes"],
+                                        file_name=file_name
+                                    )                        
+
+#--------------------------------------------------------------------------------------------
+
+def orders_page():
+
+    if st.session_state.get("user_role") not in ["Guest"]:
+        st.error("Access denied.")
+        #---------------------- individual page title------------------
+    st.markdown(
+        """
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white; 
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
+            📦 Purchase Order
+        </h5>
+        <br>
+        """,
+        unsafe_allow_html=True
+    )
+    #--------------------------------------------------------------------
+
+    username = st.session_state.username
+
+    today = datetime.today()
+    default_from = today - timedelta(days=30)
+    default_to = today
+
+    col1, col2 = st.columns(2, border=True)
+    with col1:
+        from_date = st.date_input("📅 From Date", value=default_from)
+    with col2:
+        to_date = st.date_input("📅 To Date", value=default_to)
+
+    # Validate range
+    if from_date > to_date:
+        st.error("⚠️ 'From Date' cannot be after 'To Date'")
+    else:
+        # Convert to datetime for MongoDB query
+        from_datetime = datetime.combine(from_date, datetime.min.time())
+        to_datetime = datetime.combine(to_date, datetime.max.time())
+
+        # MongoDB query
+        query = {
+            "dist_name": username,
+            "date": {"$gte": from_datetime, "$lte": to_datetime}
+        }
+
+        orders = list(order_collection.find(query).sort("date", -1))
+
+        if not orders:
+            st.info("No orders found in selected date range.")
+        else:
+            st.markdown(f"""
+            <div style='
+                display: flex;
+                justify-content: center;
+                background: linear-gradient(180deg, #0a5668, #498fa0);
+                box-shadow: 1px 1px 5px rgba(1, 0, 0,  1.2);
+                margin-top: 0px;
+                margin-bottom: 30px;
+                border-radius: 10px;
+                align-items: center;
+                color : white;
+                padding: 1px;
+            '>
+                
+            </div> 
+        """, unsafe_allow_html=True)
+            for order in orders:
+                order_id = str(order["_id"])
+                with st.expander(f"📦 :red[{order['date'].strftime('%Y-%m-%d %H:%M')}] | **:blue[{order['status']}]** | Ordered by **:orange[{order['order_by']}]**"):
+                    col_po_left, col_po_right=st.columns(2)
+                    with col_po_left:
+                        st.markdown(f"**Distributor:** {order['dist_name']}")
+                        st.markdown(f"**Status:** {order['status']}")
+                        st.markdown(f"**Date:** {order['date'].strftime('%Y-%m-%d %H:%M')}")
+                    with col_po_right:
+                        if order['remarks']: st.badge(f"**⚠️ Remark:** {order['remarks']}", color="red")
+
+                    order_items = order.get("order", [])
+                    if order_items:
+                        df = pd.DataFrame(order_items)
+                        st.dataframe(df, use_container_width=True)
+
+                    else:
+                        st.warning("No items in this order.")
+
+                    courier_docket_filename = order.get("courier_docket_filename")    
+                    if courier_docket_filename:
+
+                        col_doc_left,col_doc_right=st.columns(2)
+                        with col_doc_left:
+                            st.markdown("**Courier Docket:**")
+                        with col_doc_right:
+                            if order['status'] != "Delivered": 
+                                mark=st.button("Mark as Delivered" )
+                                if mark:
+                                    order_collection.update_one(
+                                {"_id": order["_id"]},
+                                {"$set": {
+                                    "status": "Delivered",
+                                    
+                                    
+                                }}
+                            )
+                                    log_event(f"Update Order : Delivered", f"{username} - {order['date'].strftime('%Y-%m-%d %H:%M')}- {order['dist_name']}")
+                                    st.toast("Order updated successfully.")
+                                    # Refresh page to reflect change
+                                    st.rerun()
+                        
+                        if order.get("courier_docket_bytes"):
+                            file_name = order.get("courier_docket_filename", "docket")
+
+                            if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                                st.markdown("**📦 Courier Docket Image:**")
+                                st.image(order["courier_docket_bytes"], use_container_width=True)
+                            else:
+                                st.markdown("**📎 Courier Docket File:**")
+                                st.download_button(
+                                    label=f"Download {file_name}",
+                                    data=order["courier_docket_bytes"],
+                                    file_name=file_name
+                                )                        
+
+
+
+#-------------------------------------------------------------------------------------------
+
+def manage_order_page():
+    if st.session_state.get("user_role") not in ["Admin"]:
+        st.error("Access denied.")
+        #---------------------- individual page title------------------
+    st.markdown(
+        """
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white; 
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
+            📦 Manage Order
+        </h5>
+        <br>
+        """,
+        unsafe_allow_html=True
+    )
+    #--------------------------------------------------------------------
+    
+
+
+#-------------------------------------------------------------------------------------------
 
 # func for add device
 def add_device(data):
@@ -1833,7 +2184,130 @@ def update_order_page():
     )
     #--------------------------------------------------------------------
 
-    st.write("Update Order page is comming soon")
+
+
+    username = st.session_state.username
+
+    # CSS for refresh button Color [to be change later]
+    st.markdown("""
+    <style>
+    div.stButton > button {
+        width: 100%;
+        height: 45px;
+        font-size: 10px;
+        background: linear-gradient(0deg, #062134, #8fc3e7);
+        margin-bottom: 5px;
+        margin-top: 10px;
+        color: white;
+        border: none;
+        border-radius: 10px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+    
+    
+
+    
+    # Top-level refresh button
+    refresh= st.button("♻️ Refresh")
+    if refresh:
+        st.rerun()
+
+    # Define possible statuses
+    status_tabs = ["New", "Billed & Under Approval", "Approved for Dispatch", "Dispached", "Delivered", "Cancelled"]
+
+    # Create tabs for each status
+    tabs = st.tabs(status_tabs)
+
+    for idx, status in enumerate(status_tabs):
+        with tabs[idx]:
+            st.subheader(f"📦 {status} Orders")
+
+            # Fetch orders for user with current status
+            orders = list(order_collection.find({
+                "status": status
+            }).sort("date", -1))
+
+            if not orders:
+                st.info(f"No '{status}' orders found.")
+            else:
+                for order in orders:
+                    order_id = str(order["_id"])  # unique ID for each form
+                    with st.expander(f"🗓️ {order['date'].strftime('%Y-%m-%d %H:%M')} | **:blue[{order['dist_name']}]**  | Ordered by **:orange[{order['order_by']}]**"):
+
+                        st.markdown(f"**Distributor:** {order['dist_name']}")
+                        st.markdown(f"**Date:** {order['date'].strftime('%Y-%m-%d %H:%M')}")
+                        st.markdown(f"**Current Status:** {order['status']}")
+                        
+
+        
+                        # Show order items
+                        items = order.get("order", [])
+                        df = pd.DataFrame(items)
+                        st.dataframe(df, use_container_width=True)
+
+                        # shows Docket if available.
+                        courier_docket_filename = order.get("courier_docket_filename")
+                        if courier_docket_filename:
+                            st.markdown("**Courier Docket:**")
+                            
+                            if order.get("courier_docket_bytes"):
+                                file_name = order.get("courier_docket_filename", "docket")
+
+                                if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                                    st.markdown("**📦 Courier Docket Image:**")
+                                    st.image(order["courier_docket_bytes"], use_container_width=True)
+                                else:
+                                    st.markdown("**📎 Courier Docket File:**")
+                                    st.download_button(
+                                        label=f"Download {file_name}",
+                                        data=order["courier_docket_bytes"],
+                                        file_name=file_name
+                                    )                        
+
+                        # --- Update Form ---
+                        st.divider()
+                        st.markdown("#### ✏️ Update Order")
+
+                        new_status = st.selectbox(f"Update Status for {order_id}", status_tabs, index=status_tabs.index(status), key=f"status_{order_id}")
+                        remarks = st.text_area("Remarks (optional)", key=f"remarks_{order_id}")
+
+                        # --- Upload Docket Image ---
+                        docket_file = st.file_uploader("📤 Upload Courier Docket (if dispatched)", type=["jpg", "jpeg", "png", "pdf"], key=f"docket_{order_id}")
+
+                        if docket_file is not None and docket_file.type.startswith("image/"):
+                            # Open the uploaded image
+                            img = Image.open(docket_file)
+                            new_status = "Dispached"
+                            # Compress the image
+                            compressed_io = io.BytesIO()
+                            img.save(compressed_io, format='JPEG', optimize=True, quality=7)  # 5% quality
+
+                            # Get bytes
+                            compressed_bytes = compressed_io.getvalue()
+
+                            # Example: Save file info in DB (you can store bytes in GridFS if needed)
+                            order_collection.update_one(
+                                {"_id": order["_id"]},
+                                {"$set": {
+                                    "courier_docket_filename": docket_file.name,
+                                    "courier_docket_uploaded_at": datetime.today(),
+                                    "courier_docket_bytes": compressed_bytes,
+                                }}
+                            )
+                           
+
+                        if st.button("✅ Update", key=f"submit_{order_id}"):
+                            order_collection.update_one(
+                                {"_id": order["_id"]},
+                                {"$set": {
+                                    "status": new_status,
+                                    "remarks": remarks,
+                                }}
+                            )
+                            log_event(f"Update Order : {new_status}", f"{username} - {order['date'].strftime('%Y-%m-%d %H:%M')}- {order['dist_name']}")
+                            st.success("Order updated successfully.")
+                            st.rerun()
 
 
 
@@ -2190,8 +2664,8 @@ def ledgers_page():
 
 def logs():
 
-
-    logs = list(log_collection.find().sort("timestamp", -1).limit(10))
+    st.write("`Logs` :")
+    logs = list(log_collection.find().sort("timestamp", -1))
     
     if logs:
         # Optional: remove MongoDB's ObjectId for cleaner display
@@ -2205,6 +2679,12 @@ def logs():
         st.dataframe(df_logs)
     else:
         st.info("No logs found")
+
+    if st.button("🗑️ Delete All Logs", type="primary"):
+        if st.confirm("Are you sure you want to delete all logs? This action cannot be undone."):
+            log_collection.delete_many({})
+            st.success("All logs have been deleted.")
+            st.rerun()  
 
 
 # -------------------------------
@@ -2380,7 +2860,7 @@ def main():
         log_event("Change_Password_page", st.session_state.username)
         Change_Password_page()
     elif page == "Update Order":
-        log_event("update_order_page", st.session_state.username)
+        # log_event("update_order_page", st.session_state.username)
         update_order_page()
     elif page == "Attendance Managment":
         log_event("att_managment_page", st.session_state.username)
@@ -2400,6 +2880,14 @@ def main():
     elif page == "Logs":
         log_event("logs", st.session_state.username)
         logs()
+    elif page == "Orders":
+        log_event("orders", st.session_state.username)
+        orders_page()
+    elif page == "Manage Order":
+        log_event("Manage Order", st.session_state.username)
+        manage_order_page()
+    
+    
     
 
 
