@@ -1593,7 +1593,7 @@ def order_page():
                         col_po_left, col_po_right=st.columns(2)
                         with col_po_left:
                             st.markdown(f"**Distributor:** {order['dist_name']}")
-                            st.markdown(f"**Status:** {order['status']}")
+                            st.markdown(f"**Status:** **:blue[{order['status']}]**")
                             st.markdown(f"**Date:** {order['date'].strftime('%Y-%m-%d %H:%M')}")
                         with col_po_right:
                             if order['status'] != "New" and order['remarks']: st.badge(f"**⚠️ Remark:** {order['remarks']}", color="red")
@@ -2323,7 +2323,7 @@ def update_order_page():
 
                             st.markdown(f"**Distributor:** {order['dist_name']}")
                             st.markdown(f"**Date:** {order['date'].strftime('%Y-%m-%d %H:%M')}")
-                            st.markdown(f"**Current Status:** {order['status']}")
+                            st.markdown(f"**Current Status:** **:blue[{order['status']}]**")
                             
                             # Show order items
                             items = order.get("order", [])
