@@ -326,26 +326,26 @@ div.stColumn.st-emotion-cache-1ot6vu8.e1lln2w82 {
             
             }
 
-/*[ to be update ] live st.expander - Update Order page*/
+/* 2-lv live st.expander - Update Order page (it's working with most of the container)*/
 div.stExpander.st-emotion-cache-8atqhb {
             background: linear-gradient(135deg, lightblue, white);
             padding: 10px;
             border-radius: 10px;
             box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
             max-width: 100%;
-            margin-top: 20px;
+            margin-top: 5px;
             color: Black;
            
             }
                  
-/*Local st.expander - Update Order page (it's working with most of the container*/
+/* 2-lc Local st.expander - Update Order page (it's working with most of the container)*/
 div.st-emotion-cache-0 {
             background: linear-gradient(135deg, lightblue, white);
             padding: 10px;
             border-radius: 10px;
             box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
             max-width: 100%;
-            margin-top: 20px;
+            margin-top: 5px;
             color: Black;
            
             }
@@ -447,6 +447,10 @@ div.st-emotion-cache-1clstc5.e1kosxz24  {
             border-radius: 10px;
             }
 
+/*for local App & Live App both - selectBox*/              
+div[data-baseweb="select"] {
+        font-size: 10px;
+    }
 
 
             
@@ -485,7 +489,6 @@ st.markdown(
             width: 50%;
             padding: 15px;
         }}
-        
         
 
     </style>
@@ -603,7 +606,7 @@ def show_sidebar():
                     st.session_state.selected_page = "Devices"
                 if st.button("📊 Distributors"):
                     st.session_state.selected_page = "Distributors"
-                if st.button("📒 Distributors Ledgers"):
+                if st.button("📒 Ledgers"):
                     st.session_state.selected_page = "Distributors Ledgers"
                 #if st.button("🚚 Logistics"):
                 #    st.session_state.selected_page = "Logistics"
@@ -611,13 +614,13 @@ def show_sidebar():
         # Admin Only --------------------------------------------------------------------------------------
         if user_role in ["Admin"]:
             with st.sidebar.expander(f" **Admin Options** "):
-                if st.button("📦 Manage Order"):
+                if st.button("📦 Order.set"):
                     st.session_state.selected_page = "Manage Order"
                 if st.button("📝 Users"):
                     st.session_state.selected_page = "Users"
-                if st.button("🛠️ Utility"):
+                if st.button("Utility", icon="🛠️"):
                     st.session_state.selected_page = "Utility"
-                if st.button("🕒 Attendance Managment"):
+                if st.button("Attendance.s",icon="🕒"):
                     st.session_state.selected_page = "Attendance Managment"
                 if st.button("📜 Logs"):
                     st.session_state.selected_page = "Logs"
@@ -814,7 +817,7 @@ def users_page():
 
         def show_users(users_list):
             for data in users_list:
-                with st.container(border=True):
+                with st.container():
                     
                     with st.expander(f" **{data.get('full_name', 'N/A')}**  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 💼 Brand: **{data.get('Brand', 'N/A')}**",icon="👤"):
                         cols = st.columns([1, 3])
@@ -1598,7 +1601,61 @@ def order_page():
                         order_items = order.get("order", [])
                         if order_items:
                             df = pd.DataFrame(order_items)
-                            st.dataframe(df, use_container_width=True)
+                            st.write(f"{order['status']}")
+                            if order['status']=="New":                            
+                                modify=st.checkbox("Modify Order",key=f"check_{order_id}")
+                                
+                                if modify:
+                                    tab_modify,tab_add=st.tabs(["Modify","Add"])
+
+                                    with tab_modify:
+                                        edited_list=st.data_editor(df, num_rows="dynamic",)
+
+
+                                        if st.button("Save"):
+                                            if not edited_list.empty:
+                                                Updated_order = edited_list.to_dict(orient='records')  # Convert DataFrame to list of dicts
+                                                order_collection.update_one(
+                                                    {"_id": order["_id"]},
+                                                    {"$set": {"order": Updated_order}}
+                                                )
+
+                                                st.toast("Order saved !")
+                                            else:
+                                                st.warning("No data to save.")
+
+                                                
+                                            st.rerun()
+
+                                    
+                                    with tab_add:
+                                        brands = device_collection.distinct("brand")
+                                        selected_brand = st.selectbox("Brand", brands   , index=None, placeholder="- Select - ",key=f"Brand_Select_{order_id}")
+                                        
+                                        types = device_collection.distinct("type", {"brand": selected_brand})
+                                        selected_type = st.selectbox("Type", types, index=None, placeholder="- Select - ", key=f"Type_Select_{order_id}")
+
+                                        models = device_collection.distinct("model", {"brand": selected_brand, "type": selected_type})
+                                        new_model=st.selectbox("Model", models, index=None, placeholder="- Select - ", key=f"Model_Select_{order_id}")
+                                        new_qty=st.number_input("Quantity", min_value=0, step=1, key=f"Qty_Select_{order_id}" )
+                                        if st.button("Add"):
+                                            order_collection.update_one(
+                                                {"_id": order["_id"]},
+                                                {"$push": {"order": {"model": new_model, "qty": new_qty}}}
+                                            )
+                                            st.toast("Item Added")
+                                            
+                                            st.rerun()
+
+                                    # with tab_modi:
+                                    #     edited_list=st.data_editor(df, num_rows="dynamic") # 👈 Set a key
+                                    #     #st.write("Here's the value in Session State:")
+                                    #     #st.write(st.session_state["my_key"]) # 👈 Show the value in Session State
+                                else:
+                                    st.dataframe(df, use_container_width=True)
+                            
+                            else:
+                                st.dataframe(df, use_container_width=True)
 
                         else:
                             st.warning("No items in this order.")
@@ -2185,13 +2242,10 @@ def update_order_page():
     #--------------------------------------------------------------------
 
 
-
-    username = st.session_state.username
-
-    # CSS for refresh button Color [to be change later]
+# CSS for refresh button Color [to be change later]
     st.markdown("""
     <style>
-    div.stButton > button {
+    /*div.stButton > button {
         width: 100%;
         height: 45px;
         font-size: 10px;
@@ -2201,113 +2255,196 @@ def update_order_page():
         color: white;
         border: none;
         border-radius: 10px;
-    }
-    </style>
+    }*/
+
+    /* 1-LC [Refresh Button]*/
+    .st-emotion-cache-2l7auv.eacrzsi3 {
+            background: linear-gradient(0deg, green, lightgreen);
+            width: 100%;
+            height: auto;
+            font-size: 10px;
+            margin-bottom: 5px;
+            margin-top: 5px;
+            color: black;
+            border: 10px;
+            border-radius: 50px;
+            
+                }                
+
+    /* 1-LV [Refresh Button] to be update   */
+    .st-emotion-cache-2l7auv.eacrzsi3 {
+            background: linear-gradient(0deg, green, lightgreen);
+            width: 100%;
+            height: 100%;
+            font-size: 10px;
+            margin-bottom: 5px;
+            margin-top: 5px;
+            color: black;
+            border: 10px;
+            border-radius: 50px;
+            
+                }                
+
+                    </style>
 """, unsafe_allow_html=True)
     
-    
+    username = st.session_state.username    
 
-    
-    # Top-level refresh button
-    refresh= st.button("♻️ Refresh")
-    if refresh:
-        st.rerun()
+    col_options, col_refresh=st.columns([8,1])
+    with col_refresh:
+        # Top-level refresh button
+        refresh= st.button("♻️ **Refresh**",type="tertiary")
+        if refresh:
+            st.rerun()
+    with col_options:
+        options=st.radio("Options: ", ["**:rainbow[Current Orders]**", "**:blue[Order By Date]**"],horizontal=True)
+    if options=="**:rainbow[Current Orders]**":
+        # Define possible statuses
+        status_tabs = ["New", "Billed & Under Approval", "Approved for Dispatch", "Dispached", "Delivered", "Cancelled"]
 
-    # Define possible statuses
-    status_tabs = ["New", "Billed & Under Approval", "Approved for Dispatch", "Dispached", "Delivered", "Cancelled"]
+        # Create tabs for each status
+        tabs = st.tabs(status_tabs)
 
-    # Create tabs for each status
-    tabs = st.tabs(status_tabs)
+        for idx, status in enumerate(status_tabs):
+            with tabs[idx]:
+                st.subheader(f"📦 {status} Orders")
 
-    for idx, status in enumerate(status_tabs):
-        with tabs[idx]:
-            st.subheader(f"📦 {status} Orders")
+                # Fetch orders for user with current status
+                orders = list(order_collection.find({
+                    "status": status
+                }).sort("date", -1))
 
-            # Fetch orders for user with current status
-            orders = list(order_collection.find({
-                "status": status
-            }).sort("date", -1))
+                if not orders:
+                    st.info(f"No '{status}' orders found.")
+                else:
+                    for order in orders:
+                        order_id = str(order["_id"])  # unique ID for each form
+                        with st.expander(f"🗓️ {order['date'].strftime('%Y-%m-%d %H:%M')} | **:blue[{order['dist_name']}]**  | Ordered by **:orange[{order['order_by']}]**"):
 
-            if not orders:
-                st.info(f"No '{status}' orders found.")
-            else:
-                for order in orders:
-                    order_id = str(order["_id"])  # unique ID for each form
-                    with st.expander(f"🗓️ {order['date'].strftime('%Y-%m-%d %H:%M')} | **:blue[{order['dist_name']}]**  | Ordered by **:orange[{order['order_by']}]**"):
-
-                        st.markdown(f"**Distributor:** {order['dist_name']}")
-                        st.markdown(f"**Date:** {order['date'].strftime('%Y-%m-%d %H:%M')}")
-                        st.markdown(f"**Current Status:** {order['status']}")
-                        
-
-        
-                        # Show order items
-                        items = order.get("order", [])
-                        df = pd.DataFrame(items)
-                        st.dataframe(df, use_container_width=True)
-
-                        # shows Docket if available.
-                        courier_docket_filename = order.get("courier_docket_filename")
-                        if courier_docket_filename:
-                            st.markdown("**Courier Docket:**")
+                            st.markdown(f"**Distributor:** {order['dist_name']}")
+                            st.markdown(f"**Date:** {order['date'].strftime('%Y-%m-%d %H:%M')}")
+                            st.markdown(f"**Current Status:** {order['status']}")
                             
-                            if order.get("courier_docket_bytes"):
-                                file_name = order.get("courier_docket_filename", "docket")
+                            # Show order items
+                            items = order.get("order", [])
+                            df = pd.DataFrame(items)
+                            
+                            modify=st.checkbox("Modify Order",key=f"check_{order_id}")
+                            
+                            if modify:
+                                tab_modify,tab_add=st.tabs(["Modify","Add"])
 
-                                if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
-                                    st.markdown("**📦 Courier Docket Image:**")
-                                    st.image(order["courier_docket_bytes"], use_container_width=True)
-                                else:
-                                    st.markdown("**📎 Courier Docket File:**")
-                                    st.download_button(
-                                        label=f"Download {file_name}",
-                                        data=order["courier_docket_bytes"],
-                                        file_name=file_name
-                                    )                        
+                                with tab_modify:
+                                    edited_list=st.data_editor(df, num_rows="dynamic",)
 
-                        # --- Update Form ---
-                        st.divider()
-                        st.markdown("#### ✏️ Update Order")
 
-                        new_status = st.selectbox(f"Update Status for {order_id}", status_tabs, index=status_tabs.index(status), key=f"status_{order_id}")
-                        remarks = st.text_area("Remarks (optional)", key=f"remarks_{order_id}")
+                                    if st.button("Save"):
+                                        if not edited_list.empty:
+                                            Updated_order = edited_list.to_dict(orient='records')  # Convert DataFrame to list of dicts
+                                            order_collection.update_one(
+                                                {"_id": order["_id"]},
+                                                {"$set": {"order": Updated_order}}
+                                            )
 
-                        # --- Upload Docket Image ---
-                        docket_file = st.file_uploader("📤 Upload Courier Docket (if dispatched)", type=["jpg", "jpeg", "png", "pdf"], key=f"docket_{order_id}")
+                                            st.toast("Order saved !")
+                                        else:
+                                            st.warning("No data to save.")
 
-                        if docket_file is not None and docket_file.type.startswith("image/"):
-                            # Open the uploaded image
-                            img = Image.open(docket_file)
-                            new_status = "Dispached"
-                            # Compress the image
-                            compressed_io = io.BytesIO()
-                            img.save(compressed_io, format='JPEG', optimize=True, quality=7)  # 5% quality
+                                            
+                                        st.rerun()
 
-                            # Get bytes
-                            compressed_bytes = compressed_io.getvalue()
+                                
+                                with tab_add:
+                                    brands = device_collection.distinct("brand")
+                                    selected_brand = st.selectbox("Brand", brands   , index=None, placeholder="- Select - ")
+                                    
+                                    types = device_collection.distinct("type", {"brand": selected_brand})
+                                    selected_type = st.selectbox("Type", types, index=None, placeholder="- Select - ")
 
-                            # Example: Save file info in DB (you can store bytes in GridFS if needed)
-                            order_collection.update_one(
-                                {"_id": order["_id"]},
-                                {"$set": {
-                                    "courier_docket_filename": docket_file.name,
-                                    "courier_docket_uploaded_at": datetime.today(),
-                                    "courier_docket_bytes": compressed_bytes,
-                                }}
-                            )
-                           
+                                    models = device_collection.distinct("model", {"brand": selected_brand, "type": selected_type})
+                                    new_model=st.selectbox("Model", models, index=None, placeholder="- Select - ")
+                                    new_qty=st.number_input("Quantity", min_value=0, step=1)
+                                    if st.button("Add"):
+                                        order_collection.update_one(
+                                            {"_id": order["_id"]},
+                                            {"$push": {"order": {"model": new_model, "qty": new_qty}}}
+                                        )
+                                        st.toast("Item Added")
+                                        
+                                        st.rerun()
 
-                        if st.button("✅ Update", key=f"submit_{order_id}"):
-                            order_collection.update_one(
-                                {"_id": order["_id"]},
-                                {"$set": {
-                                    "status": new_status,
-                                    "remarks": remarks,
-                                }}
-                            )
-                            log_event(f"Update Order : {new_status}", f"{username} - {order['date'].strftime('%Y-%m-%d %H:%M')}- {order['dist_name']}")
-                            st.success("Order updated successfully.")
-                            st.rerun()
+                                # with tab_modi:
+                                #     edited_list=st.data_editor(df, num_rows="dynamic") # 👈 Set a key
+                                #     #st.write("Here's the value in Session State:")
+                                #     #st.write(st.session_state["my_key"]) # 👈 Show the value in Session State
+                            else:
+                                st.dataframe(df, use_container_width=True)
+                            
+
+                            #---------------------------------------------------------------------------------------
+                            # shows Docket if available.
+                            courier_docket_filename = order.get("courier_docket_filename")
+                            if courier_docket_filename:
+                                st.markdown("**Courier Docket:**")
+                                
+                                if order.get("courier_docket_bytes"):
+                                    file_name = order.get("courier_docket_filename", "docket")
+
+                                    if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                                        st.markdown("**📦 Courier Docket Image:**")
+                                        st.image(order["courier_docket_bytes"], use_container_width=True)
+                                    else:
+                                        st.markdown("**📎 Courier Docket File:**")
+                                        st.download_button(
+                                            label=f"Download {file_name}",
+                                            data=order["courier_docket_bytes"],
+                                            file_name=file_name
+                                        )                        
+
+                            # --- Update Form ---
+                            st.divider()
+                            st.markdown("#### ✏️ Update Order")
+
+                            new_status = st.selectbox(f"Update Status for {order_id}", status_tabs, index=status_tabs.index(status), key=f"status_{order_id}")
+                            remarks = st.text_area("Remarks (optional)", key=f"remarks_{order_id}")
+
+                            # --- Upload Docket Image ---
+                            docket_file = st.file_uploader("📤 Upload Courier Docket (if dispatched)", type=["jpg", "jpeg", "png", "pdf"], key=f"docket_{order_id}")
+
+                            if docket_file is not None and docket_file.type.startswith("image/"):
+                                # Open the uploaded image
+                                img = Image.open(docket_file)
+                                new_status = "Dispached"
+                                # Compress the image
+                                compressed_io = io.BytesIO()
+                                img.save(compressed_io, format='JPEG', optimize=True, quality=7)  # 5% quality
+
+                                # Get bytes
+                                compressed_bytes = compressed_io.getvalue()
+
+                                # Example: Save file info in DB (you can store bytes in GridFS if needed)
+                                order_collection.update_one(
+                                    {"_id": order["_id"]},
+                                    {"$set": {
+                                        "courier_docket_filename": docket_file.name,
+                                        "courier_docket_uploaded_at": datetime.today(),
+                                        "courier_docket_bytes": compressed_bytes,
+                                    }}
+                                )
+                            
+
+                            if st.button("✅ Update", key=f"submit_{order_id}"):
+                                order_collection.update_one(
+                                    {"_id": order["_id"]},
+                                    {"$set": {
+                                        "status": new_status,
+                                        "remarks": remarks,
+                                        #"order": st.session_state.order_items
+                                    }}
+                                )
+                                log_event(f"Update Order : {new_status}", f"{username} - {order['date'].strftime('%Y-%m-%d %H:%M')}- {order['dist_name']}")
+                                st.success("Order updated successfully.")
+                                st.rerun()
 
 
 
