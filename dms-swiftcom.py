@@ -1601,7 +1601,7 @@ def order_page():
                         order_items = order.get("order", [])
                         if order_items:
                             df = pd.DataFrame(order_items)
-                            st.write(f"{order['status']}")
+                            
                             if order['status']=="New":                            
                                 modify=st.checkbox("Modify Order",key=f"check_{order_id}")
                                 
