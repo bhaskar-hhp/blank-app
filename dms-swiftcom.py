@@ -171,7 +171,7 @@ def login():
 
             username = st.text_input("Username").strip().upper()
             password = st.text_input("Password", type="password")
-            submitted = st.form_submit_button("Login")
+            submitted = st.form_submit_button("Login",use_container_width=True)
             
             if submitted:
                 if login_type == "👥Members":
@@ -770,7 +770,7 @@ def users_page():
                     doc_url = st.text_input("Document URL").strip()
                     Closing_Date_in = st.date_input("Closing Date")
 
-            submitted = st.form_submit_button("Submit")
+            submitted = st.form_submit_button("Submit",use_container_width=True)
 
             if submitted:
                 all_users = list(users_collection.find())
@@ -957,7 +957,7 @@ def users_page():
                     doc_url = st.text_input("Document URL", value=user_data.get("doc_url", "")).strip()
                     Closing_Date = st.text_input("Closing Date", value=user_data.get("Closing_Date", ""))
 
-            submitted = st.form_submit_button("Update User")
+            submitted = st.form_submit_button("Update User",use_container_width=True)
 
             if submitted:
                 image_b64 = user_data.get("image_b64", "")
@@ -1988,7 +1988,7 @@ def devices_page():
             selected_type = st.selectbox("Select Type", type_options, index=None, placeholder="- Select Type - ") if not df.empty else st.text_input("Enter Type").strip().upper()
             model = st.text_input("Model")
 
-            submitted = st.form_submit_button("Add Device")
+            submitted = st.form_submit_button("Add Device",use_container_width=True)
             if submitted:
                 if not selected_brand or not selected_type:
                     st.warning("Please enter both a valid Brand and Type.")
@@ -2213,7 +2213,7 @@ def Change_Password_page():
     with st.form("Change Password"):
         new_pass=st.text_input("Enter New Password :", type='password')
         confirm_pass=st.text_input("Enter Confirm Password :", type='password')
-        submit=st.form_submit_button("Update Password",type="primary")
+        submit=st.form_submit_button("Update Password",type="primary",use_container_width=True)
         if new_pass and confirm_pass :
                 
                 if submit and new_pass==confirm_pass :
@@ -2985,10 +2985,8 @@ def main():
                     box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
                     padding: 8px 16px;
                     margin-top: 20px;
-                    margin-left: 120px;
-
-                    border-radius: 30px;
-                    width: 100%;
+                    border-radius: 50px;
+                    width: 50%;
                     padding: 15px;
 
                        
