@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-import firebase_admin
-from firebase_admin import credentials, firestore, initialize_app
+#import firebase_admin
+#from firebase_admin import credentials, firestore, initialize_app
 import io
 from io import StringIO
 from datetime import datetime, timedelta
@@ -259,7 +259,10 @@ st.markdown(
 st.markdown("""
     <style>
     div.stButton > button {
-        width: 100%;
+        width: 100% !important;
+        display: block;
+        text-align: center;
+                 
         height: 45px;
         font-size: 10px;
         background: linear-gradient(0deg, #062134, #8fc3e7);
@@ -268,6 +271,10 @@ st.markdown("""
         color: white;
         border: none;
         border-radius: 10px;
+        display: flex;
+        justify-content: center;    
+        align-items: center;
+        position: relative;
     }
 
     div.stButton > button:hover {
@@ -580,74 +587,77 @@ def show_sidebar():
         st.title("📂 Navigation")
 
         # All roles: Home
-        if st.button("🏠 Home"):
+        if st.button("🏠 Home",use_container_width=True):
             st.session_state.selected_page = "Home"
 
 
         # Admin , "Standard", "Back Office": -----------------------------------------------------------------------------
         if user_role in ["Admin", "Standard", "Back Office"]:
-            if st.button("🕒 Attendance"):
+            if st.button("🕒 Attendance",use_container_width=True):
                 st.session_state.selected_page = "Attendance"
 
 
 
         # Admin , "Standard", "Guest": -----------------------------------------------------------------------------
         if user_role in ["Standard"]:
-            if st.button("📦Purchase Order"):
+            if st.button("📦Purchase Order",use_container_width=True):
                 st.session_state.selected_page = "Order"
                 
 
         # Admin , Back Office: -----------------------------------------------------------------------------
         if user_role in ["Admin", "Back Office"]:
             with st.sidebar.expander(f" **Back Office Options** "):
-                if st.button("📦 Update Order"):
+                if st.button("📦 Update Order",use_container_width=True):
                     st.session_state.selected_page = "Update Order"
-                if st.button("📱 Devices"):
+                if st.button("📱 Devices",use_container_width=True):
                     st.session_state.selected_page = "Devices"
-                if st.button("📊 Distributors"):
+                if st.button("📊 Distributors",use_container_width=True):
                     st.session_state.selected_page = "Distributors"
-                if st.button("📒 Ledgers"):
+                if st.button("📒 Ledgers",use_container_width=True):
                     st.session_state.selected_page = "Distributors Ledgers"
+                if st.button("👥 Assign User",use_container_width=True):
+                    st.session_state.selected_page = "Assign User"
+
                 #if st.button("🚚 Logistics"):
                 #    st.session_state.selected_page = "Logistics"
 
         # Admin Only --------------------------------------------------------------------------------------
         if user_role in ["Admin"]:
             with st.sidebar.expander(f" **Admin Options** "):
-                if st.button("📦 Order.set"):
+                if st.button("📦 Order.set",use_container_width=True):
                     st.session_state.selected_page = "Manage Order"
-                if st.button("📝 Users"):
+                if st.button("👥 Users",use_container_width=True):
                     st.session_state.selected_page = "Users"
-                if st.button("Utility", icon="🛠️"):
+                if st.button("Utility",use_container_width=True, icon="🛠️"):
                     st.session_state.selected_page = "Utility"
-                if st.button("Attendance.s",icon="🕒"):
+                if st.button("Attendance.s",use_container_width=True,icon="🕒"):
                     st.session_state.selected_page = "Attendance Managment"
-                if st.button("📜 Logs"):
+                if st.button("📜 Logs",use_container_width=True):
                     st.session_state.selected_page = "Logs"
 
 
         # Guest Only --------------------------------------------------------------------------------------
         if user_role in ["Guest"]:
-            if st.button("📝 Ledger"):
+            if st.button("📝 Ledger",use_container_width=True):
                 st.session_state.selected_page = "Ledger"
-            if st.button("📦Purchase Order"):
+            if st.button("📦Purchase Order",use_container_width=True):
                 st.session_state.selected_page = "Orders"
      
         # --------------------------------------------------------------------------------------------------
 
         # Standard Only --------------------------------------------------------------------------------------
         if user_role in ["Standard"]:
-            if st.button("📝 Ledgers"):
+            if st.button("📝 Ledgers",use_container_width=True):
                 st.session_state.selected_page = "Ledgers"
      
         # --------------------------------------------------------------------------------------------------
 
 
-        if st.button("🔐 Change Password"):
+        if st.button("🔐 Change Password",use_container_width=True):
             st.session_state.selected_page = "Change_Password"
 
         # Logout button
-        if st.button("🚪 Logout"):
+        if st.button("🚪 Logout",use_container_width=True):
             logout()
 
 # -------------------------------
@@ -901,7 +911,7 @@ def users_page():
         all_users = list(users_collection.find())
         usernames = [u.get("name") for u in all_users]
         to_delete = st.selectbox("Select user to delete", usernames)
-        if st.button("Delete",type="primary"):
+        if st.button("Delete",type="primary", use_container_width=True):
             users_collection.delete_one({"name": to_delete})
             st.success(f"Deleted user {to_delete}.")
 
@@ -1079,7 +1089,7 @@ def distributors_page():
             "brand": brand
         }
 
-        if st.button("Add"):
+        if st.button("Add", use_container_width=True):
             if all([id, pwd, name, location, company, brand]):
                 dist_collection.insert_one(doc)
                 st.success("Distributor added.")
@@ -1172,7 +1182,7 @@ def distributors_page():
                     assigned_to = st.text_input("Assigned To", selected_data["assigned_to"])
 
                 st.divider()
-                if st.button("Update"):
+                if st.button("Update", use_container_width=True):
                     # Build the update document
                     update_fields = {
                         "id": id,
@@ -1206,7 +1216,7 @@ def distributors_page():
         
         if dist_name:
             selected = st.selectbox("Select Distributor to Delete", dist_name, index=None, placeholder="- Select Name -")
-            if st.button("Delete",type="primary"):
+            if st.button("Delete",type="primary", use_container_width=True):
                 dist_collection.delete_one({"name": selected})
             
                 st.success(f"Distributor deleted : '**{selected}**' ")
@@ -1251,8 +1261,8 @@ def distributors_ledgers_page():
 
 
     # Google Drive file IDs
-    file_id = '1Qt_dcHn8YNeVL6s7m7647YssIoukdNoB'
-    bal_file_id = '1F39ERDJAiRTOYnNTnThtF-sIl_-zX3j5'
+    file_id = '10NP-jpsSO81Uk_Ms9H_llXmddg6x0xg_'
+    bal_file_id = '15wpT8PWvfhTHrefwXxcqWq5j1dDUoscm'
 
     # Construct direct download URLs
     csv_url = f'https://drive.google.com/uc?id={file_id}'
@@ -1295,7 +1305,7 @@ def distributors_ledgers_page():
                     else:
                         final_ledgers = []
 
-        search_button=st.button("🔍 Search")
+        search_button=st.button("🔍 Search", use_container_width=True)
         if search_button:
             st.divider()
         
@@ -1511,7 +1521,7 @@ def order_page():
             if "order_items" not in st.session_state:
                 st.session_state.order_items = []
 
-            if st.button("➕ Add Item"):
+            if st.button("➕ Add Item", use_container_width=True):
                 st.session_state.order_items.append({"model": selected_model, "qty": qty})
                 st.success(f"Added {selected_model} x {qty}")
 
@@ -1524,7 +1534,7 @@ def order_page():
                 st.info("No items added yet.")
         
         # --- Final Submission ---
-        if st.button("✅ Submit Order"):
+        if st.button("✅ Submit Order", use_container_width=True):
             if not st.session_state.order_items:
                 st.warning("Please add at least one item to submit the order.")
             else:
@@ -1612,7 +1622,7 @@ def order_page():
                                         edited_list=st.data_editor(df, num_rows="dynamic",)
 
 
-                                        if st.button("Save"):
+                                        if st.button("Save", use_container_width=True):
                                             if not edited_list.empty:
                                                 Updated_order = edited_list.to_dict(orient='records')  # Convert DataFrame to list of dicts
                                                 order_collection.update_one(
@@ -1638,7 +1648,7 @@ def order_page():
                                         models = device_collection.distinct("model", {"brand": selected_brand, "type": selected_type})
                                         new_model=st.selectbox("Model", models, index=None, placeholder="- Select - ", key=f"Model_Select_{order_id}")
                                         new_qty=st.number_input("Quantity", min_value=0, step=1, key=f"Qty_Select_{order_id}" )
-                                        if st.button("Add"):
+                                        if st.button("Add", use_container_width=True):
                                             order_collection.update_one(
                                                 {"_id": order["_id"]},
                                                 {"$push": {"order": {"model": new_model, "qty": new_qty}}}
@@ -1668,7 +1678,7 @@ def order_page():
                                 st.markdown("**Courier Docket:**")
                             with col_doc_right:
                                 if order['status'] != "Delivered": 
-                                    mark=st.button("Mark as Delivered", key=f"submit_{order_id}")
+                                    mark=st.button("Mark as Delivered", key=f"submit_{order_id}", use_container_width=True)
                                     if mark:
                                         order_collection.update_one(
                                     {"_id": order["_id"]},
@@ -1795,7 +1805,7 @@ def orders_page():
                             st.markdown("**Courier Docket:**")
                         with col_doc_right:
                             if order['status'] != "Delivered": 
-                                mark=st.button("Mark as Delivered", key=f"submit_{order_id}")
+                                mark=st.button("Mark as Delivered", key=f"submit_{order_id}", use_container_width=True)
                                 if mark:
                                     order_collection.update_one(
                                 {"_id": order["_id"]},
@@ -2031,7 +2041,7 @@ def devices_page():
                 st.error(f"❌ Error reading CSV: {e}")
 
         if st.session_state.bulk_upload_done:
-            if st.button("🔄 Upload Another File"):
+            if st.button("🔄 Upload Another File", use_container_width=True):
                 st.session_state.bulk_upload_done = False
 #--------------------------------------------
     from bson import ObjectId
@@ -2065,7 +2075,7 @@ def devices_page():
             if not final_df.empty:
                 doc_id = final_df.iloc[0]["doc_id"]
                 st.markdown(f"**Ready to delete:** `{selected_brand} | {selected_type} | {selected_model}`")
-                if st.button("Delete Device",type="primary"):
+                if st.button("Delete Device",type="primary", use_container_width=True):
                     device_collection.delete_one({"_id": ObjectId(doc_id)})
                     st.success("Device deleted successfully!")
                     st.rerun()
@@ -2101,7 +2111,7 @@ def devices_page():
         st.markdown(f"**Selected brands:** `{', '.join(selected_brands) or 'All'}`")
         st.markdown(f"**Selected types:** `{', '.join(selected_types) or 'All'}`")
 
-        if st.button("🚨 Delete Filtered Devices",type="primary"):
+        if st.button("🚨 Delete Filtered Devices",type="primary", use_container_width=True):
             with st.spinner("Deleting..."):
                 deleted_count = delete_filtered_devices(selected_brands, selected_types)
             st.success(f"✅ Deleted {deleted_count} matching device(s).")
@@ -2293,7 +2303,7 @@ def update_order_page():
     col_options, col_refresh=st.columns([8,1])
     with col_refresh:
         # Top-level refresh button
-        refresh= st.button("♻️ **Refresh**",type="tertiary")
+        refresh= st.button("♻️ **Refresh**",type="tertiary", use_container_width=True)
         if refresh:
             st.rerun()
     with col_options:
@@ -2338,7 +2348,7 @@ def update_order_page():
                                     edited_list=st.data_editor(df, num_rows="dynamic",)
 
 
-                                    if st.button("Save"):
+                                    if st.button("Save", use_container_width=True):
                                         if not edited_list.empty:
                                             Updated_order = edited_list.to_dict(orient='records')  # Convert DataFrame to list of dicts
                                             order_collection.update_one(
@@ -2364,7 +2374,7 @@ def update_order_page():
                                     models = device_collection.distinct("model", {"brand": selected_brand, "type": selected_type})
                                     new_model=st.selectbox("Model", models, index=None, placeholder="- Select - ")
                                     new_qty=st.number_input("Quantity", min_value=0, step=1)
-                                    if st.button("Add"):
+                                    if st.button("Add", use_container_width=True):
                                         order_collection.update_one(
                                             {"_id": order["_id"]},
                                             {"$push": {"order": {"model": new_model, "qty": new_qty}}}
@@ -2433,7 +2443,7 @@ def update_order_page():
                                 )
                             
 
-                            if st.button("✅ Update", key=f"submit_{order_id}"):
+                            if st.button("✅ Update", key=f"submit_{order_id}", use_container_width=True):
                                 order_collection.update_one(
                                     {"_id": order["_id"]},
                                     {"$set": {
@@ -2494,8 +2504,8 @@ def ledger_page():
 
     
     # Google Drive file IDs
-    file_id = '1Qt_dcHn8YNeVL6s7m7647YssIoukdNoB'
-    bal_file_id = '1F39ERDJAiRTOYnNTnThtF-sIl_-zX3j5'
+    file_id = '10NP-jpsSO81Uk_Ms9H_llXmddg6x0xg_'
+    bal_file_id = '15wpT8PWvfhTHrefwXxcqWq5j1dDUoscm'
 
     # Construct direct download URLs
     csv_url = f'https://drive.google.com/uc?id={file_id}'
@@ -2583,8 +2593,8 @@ def ledgers_page():
     )
 
     # Google Drive file IDs
-    file_id = '1Qt_dcHn8YNeVL6s7m7647YssIoukdNoB'
-    bal_file_id = '1F39ERDJAiRTOYnNTnThtF-sIl_-zX3j5'
+    file_id = '10NP-jpsSO81Uk_Ms9H_llXmddg6x0xg_'
+    bal_file_id = '15wpT8PWvfhTHrefwXxcqWq5j1dDUoscm'
 
     # Construct direct download URLs
     csv_url = f'https://drive.google.com/uc?id={file_id}'
@@ -2640,7 +2650,7 @@ def ledgers_page():
                     else:
                         final_ledgers = []
 
-            search_button = st.button("🔍 Search")
+            search_button = st.button("🔍 Search", use_container_width=True)
             if search_button:
                 st.divider()
                 
@@ -2818,10 +2828,64 @@ def logs():
 
  # Delete all logs with confirmation
     if st.checkbox("⚠️ I want to delete all logs"):
-        if st.button("🗑️ Confirm Delete All Logs", type="primary"):
+        if st.button("🗑️ Confirm Delete All Logs", type="primary", use_container_width=True):
             log_collection.delete_many({})
             st.success("All logs have been deleted.")
             st.rerun()
+
+
+def assign_user_page ():
+    if st.session_state.get("user_role") not in ["Admin", "Back Office"]:
+        st.error("Access denied.")
+        #---------------------- individual page title------------------
+    st.markdown(
+        """
+        <h5 style='
+        background-color:#125078; 
+        padding:10px; 
+        border-radius:10px; 
+        color:white;
+        box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
+        text-align: center;'>
+            📦 Assign User with Distributor 
+        </h5>
+        <br>
+        """,
+        unsafe_allow_html=True
+    )
+    #--------------------------------------------------------------------
+
+    user_list=users_collection.find({"type": "Standard"}, {"name": 1, "_id": 0})
+    selected_user=st.selectbox("Select User : ",user_list, index=None, placeholder="-Select User-")
+
+    col_unassigned, col_assigned=st.columns(2,border=True)
+    with col_unassigned:
+        filter=st.checkbox("Filter")
+        if filter:
+            st.write("filter")
+        else:
+            unassigned_list=list(dist_collection.find({},{"name": 1, "_id": 0}))
+            modified_list=st.data_editor(unassigned_list, num_rows="dynamic", key="unassigned")
+
+    with col_assigned:
+        st.write(f"Existing Distributors assined to :orange[{selected_user}]")
+        assigned_list=list(dist_collection.find({"assigned_to":selected_user},{"name": 1, "_id": 0}))
+        st.dataframe(assigned_list)
+
+    col_btn_left, col_button, col_btn_right=st.columns(3)
+    with col_button:
+        # remove_dist=st.button("Remove Dist.")
+        # st.divider()
+        add_to_list=st.button("💾 Add to List", use_container_width=True)
+    
+        if add_to_list and modified_list and selected_user:
+            for item in modified_list:
+                 dist_collection.update_many(
+                      {"name": {"$in": modified_list}}, 
+                      {"$addToSet": {"assigned_to": selected_user}}  # ensure no duplicates
+                 )
+            st.toast("User Assigned to selected Distributor")
+
 
 # -------------------------------
 # 🚀 MAIN APP
@@ -2921,9 +2985,14 @@ def main():
                     box-shadow: 4px 4px 12px rgba(1, 0, 0, 1.2);
                     padding: 8px 16px;
                     margin-top: 20px;
+                    margin-left: 120px;
+
                     border-radius: 30px;
-                    width: 90%;
+                    width: 100%;
                     padding: 15px;
+
+                       
+
                 }}
                 
                 [data-testid="stTextInputRootElement"]{{
@@ -3022,6 +3091,11 @@ def main():
     elif page == "Manage Order":
         log_event("Manage Order", st.session_state.username)
         manage_order_page()
+    elif page == "Assign User":
+        log_event("Assign User", st.session_state.username)
+        assign_user_page()
+    
+    
     
     
     
