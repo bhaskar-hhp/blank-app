@@ -2862,29 +2862,55 @@ def assign_user_page ():
     with col_unassigned:
         filter=st.checkbox("Filter")
         if filter:
-            st.write("filter")
+            
+            brands=dist_collection.distinct("brand")
+            selected_brand = st.selectbox("Brand", brands, index=None, placeholder="- Select - ")
+
+            location=dist_collection.distinct("location", {"brand": selected_brand})
+            selected_location=st.selectbox("Select Location", location, index=None, placeholder="-Select-")
+
+            unassigned_list=list(dist_collection.find({"brand":selected_brand, "location":selected_location},{"name": 1, "_id": 0}))
+            
+            if unassigned_list:
+                st.badge("Filtered List:", icon=":material/check:", color="blue")
         else:
             unassigned_list=list(dist_collection.find({},{"name": 1, "_id": 0}))
+        
+        if unassigned_list:
             modified_list=st.data_editor(unassigned_list, num_rows="dynamic", key="unassigned")
 
+        # ✅ Step 1: Fix existing non-array 'assigned_to' fields
+        dist_collection.update_many(
+            {"assigned_to": {"$exists": True, "$not": {"$type": "array"}}},
+            [{"$set": {"assigned_to": ["$assigned_to"]}}]  # Wrap existing value in a list
+        )
+
+        add_to_list=st.button(f" Assign List to {selected_user} ➡️")
+                
+        if add_to_list and modified_list and selected_user:
+            # Extract names from the modified list
+            name_list = [item["name"] for item in modified_list if "name" in item]
+            
+            # Perform the update
+            dist_collection.update_many(
+                {"name": {"$in": name_list}},
+                {"$addToSet": {"assigned_to": selected_user}}
+            )
+            st.toast(f"User :blue[{selected_user}] :green[Assigned] to selected Distributor")
+
+
     with col_assigned:
-        st.write(f"Existing Distributors assined to :orange[{selected_user}]")
+        st.write(f"Existing Distributors assined to :blue[{selected_user}]")
         assigned_list=list(dist_collection.find({"assigned_to":selected_user},{"name": 1, "_id": 0}))
         st.dataframe(assigned_list)
-
-    col_btn_left, col_button, col_btn_right=st.columns(3)
-    with col_button:
-        # remove_dist=st.button("Remove Dist.")
-        # st.divider()
-        add_to_list=st.button("💾 Add to List", use_container_width=True)
-    
-        if add_to_list and modified_list and selected_user:
-            for item in modified_list:
-                 dist_collection.update_many(
-                      {"name": {"$in": modified_list}}, 
-                      {"$addToSet": {"assigned_to": selected_user}}  # ensure no duplicates
-                 )
-            st.toast("User Assigned to selected Distributor")
+        clear_btn=st.button(f"🗑️Clear Existing List of {selected_user}")
+        if clear_btn and selected_user:
+            dist_collection.update_many(
+                {},  # match all distributors
+                {"$pull": {"assigned_to": selected_user}}
+            )
+            st.toast(f"User ':blue[{selected_user}]' :red[removed] from all distributors.")
+            st.rerun()
 
 
 # -------------------------------
