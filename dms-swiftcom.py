@@ -1310,8 +1310,8 @@ def distributors_ledgers_page():
             st.divider()
         
             # --- Load balance CSV from Google Drive ---
-            csv_url = "https://drive.google.com/uc?id=1F39ERDJAiRTOYnNTnThtF-sIl_-zX3j5"
-            df_bal = pd.read_csv(csv_url)
+            #csv_url = "https://drive.google.com/uc?id=1F39ERDJAiRTOYnNTnThtF-sIl_-zX3j5"
+            df_bal = pd.read_csv(bal_csv_url)
 
             # --- Filter matching ledgers ---
             df_bal_filtered = df_bal[df_bal["Ledger Name"].isin(final_ledgers)]
