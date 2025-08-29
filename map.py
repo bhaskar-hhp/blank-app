@@ -9,24 +9,17 @@ st.title("📍 Live Location Tracker")
 map_placeholder = st.empty()
 coords_placeholder = st.empty()
 
-# Run tracking for ~30 seconds (or until stopped manually)
-for i in range(1000):  # increase if you want longer tracking
-    location = streamlit_js_eval(
-        js_expressions="new Promise((resolve) => navigator.geolocation.getCurrentPosition(pos => resolve(pos.coords)))",
-        key=f"loc{i}"
-    )
+for i in range(1000):
+    # directly evaluate latitude & longitude separately
+    lat = streamlit_js_eval(js_expressions="navigator.geolocation.getCurrentPosition(p => p.coords.latitude)", key=f"lat{i}")
+    lon = streamlit_js_eval(js_expressions="navigator.geolocation.getCurrentPosition(p => p.coords.longitude)", key=f"lon{i}")
 
-    if location:
-        lat, lon = location["latitude"], location["longitude"]
-
-        # Show text info
+    if lat and lon:
         coords_placeholder.success(f"Your current location: {lat}, {lon}")
 
-        # Update map with current point
         df = pd.DataFrame([[lat, lon]], columns=["lat", "lon"])
         map_placeholder.map(df, zoom=15)
-
     else:
-        coords_placeholder.warning("Waiting for location access...")
+        coords_placeholder.warning("Waiting for location access... (Allow permission in browser)")
 
-    time.sleep(2)  # refresh every 2 seconds
+    time.sleep(2)
