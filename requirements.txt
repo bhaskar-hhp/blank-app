@@ -3,4 +3,4 @@ pandas
 streamlit
 Pillow
 pymongo
-streamlit-js-eval
+streamlit-geolocation
