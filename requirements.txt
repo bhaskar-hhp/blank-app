@@ -1,6 +1,6 @@
 altair
 pandas
 streamlit
-firebase-admin
 Pillow
 pymongo
+streamlit-js-eval
