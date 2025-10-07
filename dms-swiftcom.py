@@ -2189,7 +2189,7 @@ def attendance_page():
     import calendar
     from datetime import datetime, date
     from io import BytesIO
-
+    from xlsxwriter import Workbook
     # --------------------
     # Utility: convert gsheet edit/share link -> csv export link
     # --------------------
