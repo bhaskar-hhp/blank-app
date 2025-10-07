@@ -592,7 +592,7 @@ def show_sidebar():
 
 
         # Admin , "Standard", "Back Office": -----------------------------------------------------------------------------
-        if user_role in ["Admin", "Standard", "Back Office"]:
+        if user_role in ["Admin"]:
             if st.button("🕒 Attendance",use_container_width=True):
                 st.session_state.selected_page = "Attendance"
 
@@ -2185,8 +2185,317 @@ def attendance_page():
         unsafe_allow_html=True
     )
     #--------------------------------------------------------------------
+    import re
+    import calendar
+    from datetime import datetime, date
+    from io import BytesIO
 
-    st.write("Attendance Page comming soon")
+    # --------------------
+    # Utility: convert gsheet edit/share link -> csv export link
+    # --------------------
+    def gsheet_to_csv(url: str) -> str:
+        m = re.search(r"/d/([a-zA-Z0-9-_]+)", str(url))
+        if m:
+            return f"https://docs.google.com/spreadsheets/d/{m.group(1)}/export?format=csv"
+        return url
+
+    # --------------------
+    # Utility: normalize & load CSV robustly
+    # --------------------
+    @st.cache_data(show_spinner=False)
+    def load_and_normalize(csv_url: str) -> pd.DataFrame:
+        df = pd.read_csv(csv_url)
+        # strip column names
+        df.columns = [c.strip() for c in df.columns]
+
+        # map common names to canonical
+        lower_map = {c.lower(): c for c in df.columns}
+        def find(colnames):
+            for cand in colnames:
+                if cand in lower_map:
+                    return lower_map[cand]
+            return None
+
+        col_no = find(["no", "id", "logno"])
+        col_enno = find(["enno", "eno", "employee no", "empid", "emp_id"])
+        col_name = find(["name", "employee", "empname"])
+        col_datetime = find(["datetime", "date time", "date_time", "date/time", "time"])
+        col_date = find(["date"])
+        col_in = find(["in", "in_time", "intime"])
+        col_out = find(["out", "out_time", "outtime"])
+
+        # Prefer DateTime approach if available
+        if col_datetime:
+            df["DateTime_raw"] = df[col_datetime].astype(str).str.strip()
+            # split
+            parts = df["DateTime_raw"].str.split(r"\s+", n=1, expand=True)
+            df["date_part"] = parts[0]
+            df["time_part"] = parts[1].fillna("")
+        else:
+            # if separate Date and Time columns exist:
+            df["date_part"] = df[col_date].astype(str) if col_date else ""
+            # try to derive time from In/Out or Time
+            if col_in:
+                df["time_part"] = df[col_in].astype(str)
+            elif col_out:
+                df["time_part"] = df[col_out].astype(str)
+            else:
+                df["time_part"] = ""
+
+        # helper to fix time strings like "10.16" or "10.16.30" -> "10:16"
+        def fix_time_str(t):
+            t = str(t).strip()
+            if not t or t.lower() in ["nan", "none"]:
+                return ""
+            # Replace dots between digits with colon (only between digits)
+            t2 = re.sub(r"(?<=\d)\.(?=\d)", ":", t)
+            # keep only hours:minutes (ignore seconds)
+            for fmt in ("%H:%M:%S", "%H:%M"):
+                try:
+                    return datetime.strptime(t2, fmt).strftime("%H:%M")
+                except Exception:
+                    pass
+            # last resort: try to parse as HH.MM (without replacing)
+            t3 = t.replace(".", ":")
+            try:
+                return datetime.strptime(t3, "%H:%M").strftime("%H:%M")
+            except Exception:
+                return t2  # return best-effort
+        df["Time"] = df["time_part"].apply(fix_time_str)
+
+        # parse date part (day-first)
+        def fix_date_str(d):
+            try:
+                return pd.to_datetime(d, dayfirst=True, errors="coerce")
+            except Exception:
+                return pd.NaT
+        df["Date"] = df["date_part"].apply(fix_date_str)
+        df = df.dropna(subset=["Date"])
+
+        # Normalize EnNo and Name
+        if col_enno:
+            df["EnNo"] = df[col_enno].astype(str).str.strip()
+        else:
+            # try EnNo from EmpID like columns; fallback to No
+            df["EnNo"] = df[col_no].astype(str).str.strip() if col_no else df.index.astype(str)
+
+        if col_name:
+            df["Name"] = df[col_name].astype(str).str.strip()
+        else:
+            df["Name"] = df["EnNo"]
+
+        # Normalize No (log sequence number) which helps pick IN/OUT
+        if col_no:
+            df["No"] = pd.to_numeric(df[col_no], errors="coerce")
+        else:
+            df["No"] = pd.NA
+
+        # keep only necessary columns
+        return df[["No", "EnNo", "Name", "Date", "Time"]].copy()
+
+    # --------------------
+    # UI: get Google Sheet link
+    # --------------------
+    sheet_input = "https://docs.google.com/spreadsheets/d/1YC97YYG7CSarFgYv1c64TzYPbwZroLFS/edit?usp=sharing"
+    csv_url = gsheet_to_csv(sheet_input)
+
+    try:
+        raw = load_and_normalize(csv_url)
+        st.success("✅ Data loaded.")
+    except Exception as e:
+        st.error(f"Could not load data: {e}")
+        st.stop()
+
+    # build month-year choices
+    raw["Year"] = raw["Date"].dt.year
+    raw["Month"] = raw["Date"].dt.month
+    months = sorted(raw[["Year", "Month"]].drop_duplicates().itertuples(index=False, name=None))
+    if not months:
+        st.warning("No usable dates found in sheet.")
+        st.stop()
+
+    # choose month-year
+    def label(ym): return f"{calendar.month_name[ym[1]]} {ym[0]}"
+    default_idx = len(months) - 1
+    sel = st.selectbox("Select Month-Year", options=months, format_func=label, index=default_idx)
+    sel_year, sel_month = sel
+
+    # filter raw to selected month
+    dfm = raw[(raw["Year"] == sel_year) & (raw["Month"] == sel_month)].copy()
+    if dfm.empty:
+        st.warning("No records for selected month.")
+        st.stop()
+
+    # --------------------
+    # Compute In/Out per EnNo,Name,Date (use No if present else Time order)
+    # --------------------
+    dfm = dfm.sort_values(by=["EnNo", "Name", "Date", "No", "Time"], na_position="last")
+
+    def compute_in_out(g):
+        # g is rows for one person on one day
+        # prefer to use 'No' if numeric; else rely on Time ordering
+        if g["No"].notna().any():
+            # pick row with min No and max No
+            try:
+                in_row = g.loc[g["No"].idxmin()]
+                out_row = g.loc[g["No"].idxmax()]
+                return pd.Series({"In": in_row["Time"], "Out": out_row["Time"]})
+            except Exception:
+                pass
+        # fallback to first/last by Time
+        g_sorted = g.sort_values(by="Time")
+        if not g_sorted.empty:
+            first = g_sorted.iloc[0]["Time"]
+            last = g_sorted.iloc[-1]["Time"]
+            return pd.Series({"In": first, "Out": last})
+        return pd.Series({"In": "", "Out": ""})
+
+    # group by EnNo, Name, Date (date only)
+    grouped = dfm.groupby([dfm["EnNo"], dfm["Name"], dfm["Date"].dt.date], dropna=False)
+    daily = grouped.apply(compute_in_out).reset_index()
+    daily = daily.rename(columns={0: "tmp"})
+
+    # ensure columns
+    daily["In"] = daily["In"].fillna("").astype(str)
+    daily["Out"] = daily["Out"].fillna("").astype(str)
+    daily["InOut"] = daily["In"] + "\n" + daily["Out"]
+    daily["Day"] = pd.to_datetime(daily["Date"]).dt.day
+
+    # --------------------
+    # Pivot to report: one row per EnNo|Name ; columns 1..N days
+    # --------------------
+    month_days = calendar.monthrange(sel_year, sel_month)[1]
+    report = daily.pivot_table(index=["EnNo", "Name"], columns="Day", values="InOut", aggfunc="first").fillna("")
+    report = report.reset_index()
+
+    # Ensure all day columns exist
+    for d in range(1, month_days + 1):
+        if d not in report.columns:
+            report[d] = ""
+
+    # Order columns
+    ordered_cols = ["EnNo", "Name"] + list(range(1, month_days + 1))
+    report = report[ordered_cols]
+
+    # Sort by numeric EnNo where possible
+    def enno_key(v):
+        try:
+            return int(v)
+        except Exception:
+            try:
+                return int(str(v))
+            except:
+                return float("inf")
+    report = report.sort_values(by=["EnNo", "Name"], key=lambda col: col.map(lambda v: enno_key(v) if col.name == "EnNo" else v)).reset_index(drop=True)
+
+    # --------------------
+    # Summary: DaysPresent, DaysAbsent
+    # --------------------
+    def count_present(row):
+        cnt = 0
+        for d in range(1, month_days + 1):
+            val = row.get(d, "")
+            if isinstance(val, str) and val.strip() != "":
+                cnt += 1
+        return cnt
+
+    summary = report[["EnNo", "Name"]].copy()
+    summary["DaysPresent"] = report.apply(count_present, axis=1)
+    summary["DaysAbsent"] = month_days - summary["DaysPresent"]
+
+    # --------------------
+    # Display in app
+    # --------------------
+    st.subheader(f"📊 Detailed Report — {calendar.month_name[sel_month]} {sel_year}")
+    st.dataframe(report, use_container_width=True)
+
+    st.subheader("🧾 Summary")
+    st.dataframe(summary, use_container_width=True)
+
+    # --------------------
+    # Exports: Detailed Excel, Detailed CSV, Summary Excel, Summary CSV
+    # --------------------
+    def report_to_excel_bytes(df_report: pd.DataFrame, year: int, month: int) -> bytes:
+        out = BytesIO()
+        with pd.ExcelWriter(out, engine="xlsxwriter") as writer:
+            df_report.to_excel(writer, index=False, sheet_name="Detailed")
+            workbook = writer.book
+            ws = writer.sheets["Detailed"]
+
+            # formats
+            wrap = workbook.add_format({"text_wrap": True, "valign": "top"})
+            header_fmt = workbook.add_format({"bold": True, "align": "center", "valign": "vcenter"})
+            day_fmt = workbook.add_format({"text_wrap": True, "valign": "top"})
+            sun_fmt = workbook.add_format({"text_wrap": True, "valign": "top", "bg_color": "#EFEFEF"})
+
+            # widths for EnNo and Name
+            ws.set_column(0, 0, 12, wrap)
+            ws.set_column(1, 1, 20, wrap)
+
+            # Sunday days list
+            sundays = [d for d in range(1, calendar.monthrange(year, month)[1] + 1) if date(year, month, d).weekday() == 6]
+
+            # apply column widths and formats
+            for d in range(1, month_days + 1):
+                col_idx = 2 + (d - 1)
+                if d in sundays:
+                    ws.set_column(col_idx, col_idx, 12, sun_fmt)
+                else:
+                    ws.set_column(col_idx, col_idx, 12, day_fmt)
+
+            # format headers (mark Sunday headers slightly different)
+            for col_idx, col_name in enumerate(df_report.columns):
+                if isinstance(col_name, int) and col_name in sundays:
+                    ws.write(0, col_idx, col_name, workbook.add_format({"bold": True, "bg_color": "#DA8B8B", "align": "center"}))
+                else:
+                    ws.write(0, col_idx, col_name, header_fmt)
+
+            ws.freeze_panes(1, 2)
+            ws.autofilter(0, 0, df_report.shape[0], df_report.shape[1] - 1)
+        out.seek(0)
+        return out.getvalue()
+
+    def summary_to_excel_bytes(df_summary: pd.DataFrame, year: int, month: int) -> bytes:
+        out = BytesIO()
+        with pd.ExcelWriter(out, engine="xlsxwriter") as writer:
+            df_summary.to_excel(writer, index=False, sheet_name="Summary")
+            workbook = writer.book
+            worksheet = writer.sheets["Summary"]
+            wrap = workbook.add_format({"text_wrap": True, "valign": "top"})
+            worksheet.set_column(0, 0, 12, wrap)
+            worksheet.set_column(1, 1, 25, wrap)
+            worksheet.set_column(2, 3, 12, wrap)
+        out.seek(0)
+        return out.getvalue()
+
+    # generate bytes
+    detailed_excel = report_to_excel_bytes(report, sel_year, sel_month)
+    detailed_csv = report.to_csv(index=False).encode("utf-8")
+    summary_excel = summary_to_excel_bytes(summary, sel_year, sel_month)
+    summary_csv = summary.to_csv(index=False).encode("utf-8")
+
+    # download buttons (separate)
+    colA, colB = st.columns(2)
+    with colA:
+        st.download_button("⬇️ Download Detailed Excel (Sundays shaded)", data=detailed_excel,
+                        file_name=f"Attendance_{calendar.month_name[sel_month]}_{sel_year}_Detailed.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    with colB:
+        st.download_button("⬇️ Download Detailed CSV", data=detailed_csv,
+                        file_name=f"Attendance_{calendar.month_name[sel_month]}_{sel_year}_Detailed.csv",
+                        mime="text/csv")
+
+    colC, colD = st.columns(2)
+    with colC:
+        st.download_button("⬇️ Download Summary Excel", data=summary_excel,
+                        file_name=f"Attendance_{calendar.month_name[sel_month]}_{sel_year}_Summary.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    with colD:
+        st.download_button("⬇️ Download Summary CSV", data=summary_csv,
+                        file_name=f"Attendance_{calendar.month_name[sel_month]}_{sel_year}_Summary.csv",
+                        mime="text/csv")
+
+    st.caption("Tip: Excel preserves In/Out as two lines in a cell; Streamlit table will show the newline but cell height is limited.")
 
 
 

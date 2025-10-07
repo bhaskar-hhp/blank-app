@@ -4,3 +4,4 @@ streamlit
 Pillow
 pymongo
 streamlit-geolocation
+openpyxl
