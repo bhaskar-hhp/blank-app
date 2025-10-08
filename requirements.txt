@@ -5,3 +5,4 @@ Pillow
 pymongo
 streamlit-geolocation
 openpyxl
+xlsxwriter
