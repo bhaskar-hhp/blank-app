@@ -6,3 +6,4 @@ pymongo
 streamlit-geolocation
 openpyxl
 xlsxwriter
+streamlit>=1.32,<2
