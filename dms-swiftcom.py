@@ -1261,8 +1261,8 @@ def distributors_ledgers_page():
 
 
     # Google Drive file IDs
-    file_id = '18RPCvNutMBg2ChsgEVssBv0fUbsOUr8M'
-    bal_file_id = '15wpT8PWvfhTHrefwXxcqWq5j1dDUoscm'
+    file_id = '1gWea67HFV60ZDXPaCyF5Skio0RgouwZU'
+    bal_file_id = '15BaAUZ7KkJOxoj9HOUZ9kqGLbCGke9a6'
 
     # Construct direct download URLs
     csv_url = f'https://drive.google.com/uc?id={file_id}'
@@ -1310,7 +1310,7 @@ def distributors_ledgers_page():
             st.divider()
         
             # --- Load balance CSV from Google Drive ---
-            csv_url = "https://drive.google.com/uc?id=15wpT8PWvfhTHrefwXxcqWq5j1dDUoscm"
+            csv_url = "https://drive.google.com/uc?id=15BaAUZ7KkJOxoj9HOUZ9kqGLbCGke9a6"
             df_bal = pd.read_csv(csv_url)
 
             # --- Filter matching ledgers ---
@@ -2296,7 +2296,7 @@ def attendance_page():
     # --------------------
     # UI: get Google Sheet link
     # --------------------
-    sheet_input = "https://docs.google.com/spreadsheets/d/1YC97YYG7CSarFgYv1c64TzYPbwZroLFS/edit?usp=sharing"
+    sheet_input = "https://docs.google.com/spreadsheets/d/1Nu30C33f9ykaGWrqNc8w2IpRUWi1Eenf/edit?usp=sharing"
     csv_url = gsheet_to_csv(sheet_input)
 
     try:
@@ -2813,8 +2813,8 @@ def ledger_page():
 
     
     # Google Drive file IDs
-    file_id = '18RPCvNutMBg2ChsgEVssBv0fUbsOUr8M'
-    bal_file_id = '15wpT8PWvfhTHrefwXxcqWq5j1dDUoscm'
+    file_id = '1gWea67HFV60ZDXPaCyF5Skio0RgouwZU'
+    bal_file_id = '15BaAUZ7KkJOxoj9HOUZ9kqGLbCGke9a6'
 
     # Construct direct download URLs
     csv_url = f'https://drive.google.com/uc?id={file_id}'
@@ -2902,8 +2902,8 @@ def ledgers_page():
     )
 
     # Google Drive file IDs
-    file_id = '18RPCvNutMBg2ChsgEVssBv0fUbsOUr8M'
-    bal_file_id = '15wpT8PWvfhTHrefwXxcqWq5j1dDUoscm'
+    file_id = '1gWea67HFV60ZDXPaCyF5Skio0RgouwZU'
+    bal_file_id = '15BaAUZ7KkJOxoj9HOUZ9kqGLbCGke9a6'
 
     # Construct direct download URLs
     csv_url = f'https://drive.google.com/uc?id={file_id}'
