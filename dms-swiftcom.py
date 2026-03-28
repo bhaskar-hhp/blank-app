@@ -2296,7 +2296,7 @@ def attendance_page():
     # --------------------
     # UI: get Google Sheet link
     # --------------------
-    sheet_input = "https://docs.google.com/spreadsheets/d/1Nu30C33f9ykaGWrqNc8w2IpRUWi1Eenf/edit?usp=sharing"
+    sheet_input = "https://docs.google.com/spreadsheets/d/1nU0UfHFGWo78I7SHELAzC5z2xrFPvbUQ/edit?usp=sharing"
     csv_url = gsheet_to_csv(sheet_input)
 
     try:
